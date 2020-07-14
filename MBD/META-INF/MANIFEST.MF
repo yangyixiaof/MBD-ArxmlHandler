@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: MBD
+Bundle-SymbolicName: MBD;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Automatic-Module-Name: MBD
+Export-Package: ar,
+ ar.intf,
+ ar.swc,
+ main,
+ util
+Require-Bundle: org.eclipse.equinox.app;bundle-version="1.4.300",
+ org.artop.aal.autosar448;bundle-version="4.13.1"
