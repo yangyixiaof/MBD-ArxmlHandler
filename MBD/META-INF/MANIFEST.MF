@@ -9,5 +9,5 @@ Export-Package: ar,
  ar.swc,
  main,
  util
-Require-Bundle: org.eclipse.equinox.app;bundle-version="1.4.300",
- org.artop.aal.autosar448;bundle-version="4.13.1"
+Require-Bundle: org.artop.aal.autosar448;bundle-version="4.13.1"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
