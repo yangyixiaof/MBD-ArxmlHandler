@@ -63,7 +63,7 @@ public class Application implements IApplication {
 
 	@Override
 	public Object start(IApplicationContext arg0) throws Exception {
-		System.out.println("MBD Eclipse Starts!");
+//		System.out.println("MBD Eclipse Starts!");
 		
 		URI uri = HandleArgs(arg0);
 		if (uri != null) {
@@ -79,7 +79,8 @@ public class Application implements IApplication {
 			am.Process();
 			String s = am.ToScript();
 			s = s.replace(";", "\n");
-			System.out.println("Final Result:" + s);
+//			System.out.println("Final Result:" + s);
+			System.out.println(s);
 		}
 		return IApplication.EXIT_OK;
 	}
@@ -473,7 +474,7 @@ public class Application implements IApplication {
 
 	@Override
 	public void stop() {
-		System.out.println("MBD Eclipse Stops!");
+//		System.out.println("MBD Eclipse Stops!");
 	}
 	
 	private URI HandleArgs(IApplicationContext arg0) {
@@ -486,15 +487,15 @@ public class Application implements IApplication {
 //			System.out.println("a:" + a + "#a_val:" + a_val);
 //		}
         String[] realArgs = (String[]) args.get("application.args");
-        for (String ra : realArgs) {
-        	System.out.println("ra:" + ra);
-        }
+//        for (String ra : realArgs) {
+//        	System.out.println("ra:" + ra);
+//        }
         if ((realArgs.length == 0) || (!realArgs[0].equals("--file"))) {
         	return null;
         }
         String fn = realArgs[1];
         URI uri = URI.createFileURI(fn);
-        System.out.println("uri:" + uri);
+//        System.out.println("uri:" + uri);
         return uri;
 	}
 	

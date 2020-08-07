@@ -91,7 +91,7 @@ public class SwCompo implements ArProperty {
 	public String ToScript() {
 		String res = "";
 		
-		res += "addFunction(\"" + gen_path +  "\");";
+		res += "addFunction(\"" + gen_path +  "\", \"" + (swcs.size() == 0 ? "APPLICATION" : "COMPOSITION") + "\");";
 		
 		for (Port p : ports) {
 			res += p.ToScript();

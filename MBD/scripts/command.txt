@@ -1,0 +1,1 @@
+java -jar plugins/org.eclipse.equinox.launcher_1.5.500.v20190715-1310.jar -consoleLog -console -nosplash -application MBD.translate --file D:/Temp/Component/ThrottlePositionControlComposition.arxml
