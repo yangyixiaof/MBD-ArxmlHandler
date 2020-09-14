@@ -2,12 +2,12 @@ package ar.swc;
 
 import org.eclipse.core.runtime.Assert;
 
-import ar.ArIO;
+import ar.ArElement;
 import ar.intf.ArInterface;
 import util.ArUtil;
 import util.StringHelper;
 
-public class Port implements ArIO {
+public class SRPort extends ArElement {
 	
 	String name = null;
 	
@@ -21,12 +21,12 @@ public class Port implements ArIO {
 	
 	String gen_path = null;
 	
-	Port source = null;
+	SRPort source = null;
 	
-	Port target = null;
+	SRPort target = null;
 	
-	public Port(String name, boolean is_input) {// , SwCompo swc
-		this.name = name;
+	public SRPort(String name, boolean is_input) {// , SwCompo swc
+		super(name);
 //		this.swc = swc;
 		this.is_input = is_input;
 	}
@@ -35,21 +35,21 @@ public class Port implements ArIO {
 		return name;
 	}
 	
-	private void SetSource(Port source) {
+	private void SetSource(SRPort source) {
 		this.source = source;
 	}
 	
-	public Port GetSource() {
+	public SRPort GetSource() {
 		return source;
 	}
 	
-	public void SetTarget(Port target, SwCompo relation_base) {
+	public void SetTarget(SRPort target, SwCompo relation_base) {
 		this.target = target;
 		this.relation_base = relation_base;
 		target.SetSource(this);
 	}
 	
-	public Port GetTarget() {
+	public SRPort GetTarget() {
 		return target;
 	}
 
@@ -60,17 +60,6 @@ public class Port implements ArIO {
 	
 	public VarAcc GetVarAcc() {
 		return v_acc;
-	}
-
-	public void GeneratePath(String path) {
-//		Assert.isTrue(path.equals(""));
-//		swc.GetGeneratedPath()
-		gen_path = path + "/" + name;
-	}
-
-	@Override
-	public String GetGeneratedPath() {
-		return gen_path;
 	}
 	
 	public boolean IsInput() {
@@ -87,12 +76,12 @@ public class Port implements ArIO {
 		String ctype = "Unknown";
 		ArInterface io = ArUtil.TraceToTerminal(this);
 		if (io != null) {
-			ctype = io.GetCType();
+			Assert.isTrue(false, "The io type not handled!");
+//			ctype = io.GetCType();
 		}
 		return (func + "(\"" + StringHelper.NonLastPartInPath(gen_path) + "\",\"/" + name + "\",\"" + ctype + "\");");
 	}
 	
-	@Override
 	public String ToRelationScript() {
 		if (target != null) {
 			String res = "addRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\",\"" + StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\");";
@@ -104,7 +93,7 @@ public class Port implements ArIO {
 	@Override
 	public Object ArClone() {
 		Assert.isTrue(relation_base == null);
-		Port p = new Port(name, is_input);
+		SRPort p = new SRPort(name, is_input);
 		if (v_acc != null) {
 			p.SetVarAcc((VarAcc) v_acc.ArClone());
 		}

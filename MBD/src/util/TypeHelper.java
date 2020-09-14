@@ -1,7 +1,5 @@
 package util;
 
-import org.eclipse.core.runtime.Assert;
-
 public class TypeHelper {
 	
 	public static String TranslateArxmlTypeToCType(String tp) {
@@ -23,10 +21,12 @@ public class TypeHelper {
 		case "sint64":
 			return "long";
 		 default:
-			 Assert.isTrue(false);
-			 break;
+//			 Assert.isTrue(false, "wrong type:" + tp);
+//			 break;
+			 new Exception("unrecognized type:" + tp + "#note that here must be recovered to Assert").printStackTrace();
+			 return "double";
 		}
-		return null;
+//		return null;
 	}
 	
 }

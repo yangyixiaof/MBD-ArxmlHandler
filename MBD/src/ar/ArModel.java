@@ -6,22 +6,24 @@ import java.util.TreeMap;
 import org.eclipse.core.runtime.Assert;
 
 import ar.intf.ArInterface;
-import ar.swc.Port;
+import ar.swc.SRPort;
 import ar.swc.SwCompo;
-import ar.swc.SwCompoInst;
 import util.StringHelper;
 
-public class ArModel implements ArProperty {
+public class ArModel extends ArElement {
 	
 	TreeMap<String, ArInterface> ar_intfs = new TreeMap<String, ArInterface>();
 	TreeMap<String, SwCompo> ar_swcs = new TreeMap<String, SwCompo>();
-	TreeMap<String, SwCompoInst> ar_swcis = new TreeMap<String, SwCompoInst>();
+//	TreeMap<String, SwCompoInst> ar_swcis = new TreeMap<String, SwCompoInst>();
+	
+	TreeMap<String, ArElement> ar_eles = new TreeMap<String, ArElement>();
 	
 //	TreeMap<String, Port> ar_ports = new TreeMap<String, Port>();
-
+	
 	String gen_path = null;
 	
-	public ArModel() {
+	public ArModel(String name) {
+		super(name);
 	}
 
 	public void AddInterface(String key, ArInterface ar_intfs) {
@@ -42,33 +44,32 @@ public class ArModel implements ArProperty {
 		return ar_swcs.get(key);
 	}
 	
-	public void AddSwCompoInst(String key, SwCompoInst swci) {
-		ar_swcis.put(key, swci);	
-	}
-	
-	public SwCompoInst GetSwCompoInst(String key) {
-		Assert.isTrue(ar_swcis.containsKey(key));
-		return ar_swcis.get(key);
-	}
+//	public void AddSwCompoInst(String key, SwCompoInst swci) {
+//		ar_swcis.put(key, swci);	
+//	}
+//	
+//	public SwCompoInst GetSwCompoInst(String key) {
+//		Assert.isTrue(ar_swcis.containsKey(key));
+//		return ar_swcis.get(key);
+//	}
 	
 //	public void AddPort(String key, Port port) {
 //		ar_ports.put(key, port);
 //	}
 	
-	public Port GetPort(String key) {
+	public SRPort GetPort(String key) {
 //		Assert.isTrue(ar_ports.containsKey(key), "Wrong key:" + key + "#Key set:" + PrintUtil.PrintSet(ar_ports.keySet()));
 		String swc_name = StringHelper.NonLastPartInPath(key);
 		String port_name = StringHelper.LastPartInPath(key);
 		SwCompo swc = ar_swcs.get(swc_name);
-		SwCompoInst swci = ar_swcis.get(swc_name);
-		Port p = null;
-		if (swc != null) {
-			Assert.isTrue(swci == null, "swc_name:" + swc_name);
-			p = swc.FindPort(port_name);
-		} else {
-			Assert.isTrue(swci != null, "swc_name:" + swc_name);
-			p = swci.FindPort(port_name);
-		}
+//		SwCompoInst swci = ar_swcis.get(swc_name);
+		Assert.isTrue(swc != null);
+//			Assert.isTrue(swci == null, "swc_name:" + swc_name);
+		SRPort p = swc.FindPort(port_name);
+//		} else {
+//			Assert.isTrue(swci != null, "swc_name:" + swc_name);
+//			p = swci.FindPort(port_name);
+//		}
 		return p;
 	}
 
@@ -104,7 +105,7 @@ public class ArModel implements ArProperty {
 		ArrayList<SwCompo> rs = Topology();
 		for (SwCompo swc : rs) {
 //			if (!swc.IsReferred()) {
-			swc.GeneratePath("");
+			swc.GeneratePath();
 //			}
 		}
 //		Collection<Port> aps = ar_ports.values();
@@ -135,20 +136,10 @@ public class ArModel implements ArProperty {
 //		}
 		return result;
 	}
-
-	@Override
-	public void GeneratePath(String path) {
-		gen_path = path + "/";
-	}
-
-	@Override
-	public String GetGeneratedPath() {
-		return gen_path;
-	}
-
+	
 	@Override
 	public Object ArClone() {
-		Assert.isTrue(false);
+		Assert.isTrue(false, "ArModel should not be cloned.");
 		return null;
 	}
 	

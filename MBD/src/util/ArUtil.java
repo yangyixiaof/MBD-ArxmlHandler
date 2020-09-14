@@ -2,16 +2,16 @@ package util;
 
 import org.eclipse.core.runtime.Assert;
 
-import ar.ArModel;
+import ar.ArElement;
 import ar.intf.ArInterface;
-import ar.swc.Port;
-import ar.swc.SwCompoInst;
+import ar.swc.SRPort;
+import ar.swc.SwCompo;
 import ar.swc.VarAcc;
 
 public class ArUtil {
 	
-	public static ArInterface TraceToTerminal(Port ario) {
-		Port curr = ario;
+	public static ArInterface TraceToTerminal(SRPort ario) {
+		SRPort curr = ario;
 		if (ario.IsInput()) {
 			while (curr.GetSource() != null) {
 				curr = curr.GetSource();
@@ -28,13 +28,17 @@ public class ArUtil {
 		return null;
 	}
 	
-	public static Port GetPortFromCompoInstRef(ArModel am, Object p_prov, Object c_prov) {
+	public static SRPort GetSRPortFromCompoInstRef(InfoManager im, Object p_prov, Object c_prov) {
 		String source_c = StringHelper.GetProxyValidPath(c_prov.toString());
 		String source = StringHelper.GetProxyValidPath(p_prov.toString());
-		Assert.isTrue(am.GetSwCompoInst(source_c).GetType() == am.GetSwCompo(StringHelper.NonLastPartInPath(source)));
 		
-		SwCompoInst inst = am.GetSwCompoInst(source_c);
-		Port p_s = inst.FindPort(StringHelper.LastPartInPath(source));
+//		Assert.isTrue(im.GetSwCompoInst(source_c).GetType() == im.GetSwCompo(StringHelper.NonLastPartInPath(source)));
+		
+		ArElement ae = im.path_map.get(source_c);
+		Assert.isTrue(ae instanceof SwCompo);
+		SwCompo inst = (SwCompo) ae;
+//		im.GetSwCompoInst(source_c);
+		SRPort p_s = inst.FindPort(StringHelper.LastPartInPath(source));
 		
 		return p_s;
 	}

@@ -1,17 +1,16 @@
 package ar.swc;
 
-import ar.ArProperty;
+import org.eclipse.core.runtime.Assert;
 
-public class RunEnt implements ArProperty{
-	
-	String name = null;
-//	SwCompo sc = null;
+import ar.ArElement;
+
+public class RunEnt extends ArElement {
 	
 //	ArrayList<VarAcc> read_vas = new ArrayList<VarAcc>();
 //	ArrayList<VarAcc> write_vas = new ArrayList<VarAcc>();
 	
 	public RunEnt(String name) {// , SwCompo sc
-		this.name = name;
+		super(name);
 //		this.sc = sc;
 	}
 	
@@ -27,18 +26,10 @@ public class RunEnt implements ArProperty{
 	public Object ArClone() {
 		return new RunEnt(name);
 	}
-
-	@Override
-	public void GeneratePath(String path) {
-	}
-
-	@Override
-	public String GetGeneratedPath() {
-		return null;
-	}
-
+	
 	@Override
 	public String ToScript() {
+		Assert.isTrue(false, "Not implemented yet!");
 		return null;
 	}
 	

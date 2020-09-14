@@ -4,28 +4,29 @@ import java.util.ArrayList;
 
 import org.eclipse.core.runtime.Assert;
 
-import ar.ArProperty;
+import ar.ArElement;
 
-public class SwCompo implements ArProperty {
+public class SwCompo extends ArElement {
 	
-	String name = null;
-	
-	String gen_path = null;
+	boolean is_proto = false;
 	
 	boolean is_referred = false;
 	
-	ArrayList<Port> ports = new ArrayList<Port>();
-	ArrayList<SwCompoInst> swcs = new ArrayList<SwCompoInst>();
-	ArrayList<RunEnt> run_ents = new ArrayList<RunEnt>();
+	ArrayList<SRPort> ports = new ArrayList<SRPort>();
+	ArrayList<SwCompo> swcs = new ArrayList<SwCompo>();
 	
 	ArrayList<SwCompo> dependencies = new ArrayList<SwCompo>();
 	
 	public SwCompo(String name) {
-		this.name = name;
+		super(name);
 	}
 	
-	public String GetName() {
-		return name;
+	public void SetProto() {
+		this.is_proto = true;
+	}
+	
+	public boolean IsProto() {
+		return is_proto;
 	}
 	
 	public void SetReferred() {
@@ -36,21 +37,21 @@ public class SwCompo implements ArProperty {
 		return is_referred;
 	}
 	
-	public void AddPort(Port p) {
-		ports.add(p);
-	}
+//	public void AddPort(SRPort p) {
+//		ports.add(p);
+//	}
+//	
+//	public void AddRunEnt(RunEnt t) {
+//		run_ents.add(t);
+//	}
 	
-	public void AddRunEnt(RunEnt t) {
-		run_ents.add(t);
-	}
-	
-	public void AddSwCompoInst(SwCompoInst swc) {
-		swcs.add(swc);
-	}
-	
-	public ArrayList<SwCompoInst> GetAllSwCompoInsts() {
-		return swcs;
-	}
+//	public void AddSwCompoInst(SwCompoInst swc) {
+//		swcs.add(swc);
+//	}
+//	
+//	public ArrayList<SwCompoInst> GetAllSwCompoInsts() {
+//		return swcs;
+//	}
 	
 	public void AddDependency(SwCompo depend) {
 		dependencies.add(depend);
@@ -65,39 +66,24 @@ public class SwCompo implements ArProperty {
 		return true;
 	}
 	
-	public ArrayList<Port> GetAllPorts() {
+	public ArrayList<SRPort> GetAllPorts() {
 		return ports;
 	}
 	
-	public ArrayList<RunEnt> GetRunEnts() {
-		return run_ents;
-	}
-	
-	public void GeneratePath(String path) {
-		this.gen_path = path + "/" + name;
-		for (SwCompoInst swc : swcs) {
-			swc.GeneratePath(GetGeneratedPath());
-		}
-		for (Port p : ports) {
-			p.GeneratePath(GetGeneratedPath());
-		}
-	}
-	
-	@Override
-	public String GetGeneratedPath() {
-		return gen_path;
-	}
+//	public ArrayList<RunEnt> GetRunEnts() {
+//		return run_ents;
+//	}
 	
 	public String ToScript() {
 		String res = "";
 		
-		res += "addFunction(\"" + gen_path +  "\", \"" + (swcs.size() == 0 ? "APPLICATION" : "COMPOSITION") + "\");";
+		res += "addFunction(\"" + path +  "\", \"" + (swcs.size() == 0 ? "APPLICATION" : "COMPOSITION") + "\");";
 		
-		for (Port p : ports) {
+		for (SRPort p : ports) {
 			res += p.ToScript();
 		}
 		
-		for (SwCompoInst swc : swcs) {
+		for (SwCompo swc : swcs) {
 			res += swc.ToScript();
 		}
 		
@@ -106,12 +92,12 @@ public class SwCompo implements ArProperty {
 
 	@Override
 	public Object ArClone() {
-		Assert.isTrue(false);
+		Assert.isTrue(false, "Not implemented yet!");
 		return null;
 	}
 	
-	public Port FindPort(String name) {
-		for (Port p : ports) {
+	public SRPort FindPort(String name) {
+		for (SRPort p : ports) {
 			if (p.GetName().equals(name)) {
 				return p;
 			}
@@ -122,13 +108,30 @@ public class SwCompo implements ArProperty {
 
 	public String ToRelationScript() {
 		String res = "";
-		for (Port p : ports) {
+		for (SRPort p : ports) {
 			res += p.ToRelationScript();
 		}
-		for (SwCompoInst swc : swcs) {
+		for (SwCompo swc : swcs) {
 			res += swc.ToRelationScript();
 		}
 		return res;
+	}
+	
+	public void AddSwComponentProto(SwCompo copied_ar_ref_swc) {
+		copied_ar_ref_swc.SetProto();
+		swcs.add(copied_ar_ref_swc);
+		this.AddChildElement(copied_ar_ref_swc);
+	}
+
+	public void CardChildsAccordingToTypes() {
+		for (ArElement ele : eles) {
+			if (ele instanceof SRPort) {
+				ports.add((SRPort) ele);
+			}
+			if (ele instanceof SwCompo) {
+				swcs.add((SwCompo) ele);
+			}
+		}
 	}
 	
 }

@@ -7,6 +7,8 @@ Automatic-Module-Name: MBD
 Export-Package: ar,
  ar.intf,
  ar.swc,
+ ar.type,
+ ar.util,
  main,
  util
 Require-Bundle: org.artop.aal.autosar448;bundle-version="4.13.1"
