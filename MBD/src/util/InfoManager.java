@@ -11,16 +11,35 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
 import ar.ArElement;
+import ar.intf.ArDataElement;
 import ar.intf.ArInterface;
+import ar.intf.cs.ArClientServerInterface;
+import ar.intf.cs.ArCsArgument;
+import ar.intf.cs.ArCsOperation;
+import ar.swc.CSPort;
 import ar.swc.RunEnt;
 import ar.swc.SRPort;
 import ar.swc.SwCompo;
 import ar.swc.SwcBehaviour;
+import ar.type.ArBaseDataType;
 import ar.type.ArDataType;
 import ar.util.ArCloneUtil;
+import autosar40.commonstructure.basetypes.SwBaseType;
+import autosar40.commonstructure.datadefproperties.SwDataDefProps;
+import autosar40.commonstructure.datadefproperties.SwDataDefPropsConditional;
+import autosar40.commonstructure.implementationdatatypes.ImplementationDataType;
 import autosar40.genericstructure.generaltemplateclasses.identifiable.Referrable;
+import autosar40.genericstructure.generaltemplateclasses.primitivetypes.ArgumentDirectionEnum;
+import autosar40.swcomponent.communication.ClientComSpec;
+import autosar40.swcomponent.communication.PPortComSpec;
+import autosar40.swcomponent.communication.RPortComSpec;
+import autosar40.swcomponent.communication.ReceiverComSpec;
+import autosar40.swcomponent.communication.SenderComSpec;
+import autosar40.swcomponent.communication.ServerComSpec;
 import autosar40.swcomponent.components.AbstractProvidedPortPrototype;
 import autosar40.swcomponent.components.AbstractRequiredPortPrototype;
+import autosar40.swcomponent.components.PPortPrototype;
+import autosar40.swcomponent.components.PRPortPrototype;
 import autosar40.swcomponent.components.PortPrototype;
 import autosar40.swcomponent.components.RPortPrototype;
 import autosar40.swcomponent.components.SwComponentType;
@@ -31,9 +50,14 @@ import autosar40.swcomponent.composition.SwConnector;
 import autosar40.swcomponent.composition.instancerefs.PPortInCompositionInstanceRef;
 import autosar40.swcomponent.composition.instancerefs.PortInCompositionTypeInstanceRef;
 import autosar40.swcomponent.composition.instancerefs.RPortInCompositionInstanceRef;
+import autosar40.swcomponent.datatype.dataprototypes.AutosarDataPrototype;
 import autosar40.swcomponent.datatype.dataprototypes.VariableDataPrototype;
 import autosar40.swcomponent.datatype.datatypes.AutosarDataType;
+import autosar40.swcomponent.portinterface.ArgumentDataPrototype;
+import autosar40.swcomponent.portinterface.ClientServerInterface;
+import autosar40.swcomponent.portinterface.ClientServerOperation;
 import autosar40.swcomponent.portinterface.PortInterface;
+import autosar40.swcomponent.portinterface.SenderReceiverInterface;
 import autosar40.swcomponent.swcinternalbehavior.RunnableEntity;
 import autosar40.swcomponent.swcinternalbehavior.SwcInternalBehavior;
 import autosar40.swcomponent.swcinternalbehavior.rteevents.InitEvent;
@@ -111,19 +135,53 @@ public class InfoManager {
 			
 			ArElement ae = null;
 			
-			if (root instanceof PortInterface) {
-				PortInterface pii = (PortInterface) root;
-				System.out.println("port interface class:" + pii.getClass());
-				ae = new ArInterface(pii.getShortName());
+			if (root instanceof ImplementationDataType) {
+				ImplementationDataType idt = (ImplementationDataType) root;
+				String s_name = idt.getShortName();
+				ae = new ArDataType(s_name);
+			} else if (root instanceof SwBaseType) {
+				SwBaseType sbt = (SwBaseType) root;
+				String s_name = sbt.getShortName();
+				ae = new ArBaseDataType(s_name);
+			} else if (root instanceof PortInterface) {
+				if (root instanceof ClientServerInterface) {
+					ClientServerInterface csi = (ClientServerInterface) root;
+					ae = new ArClientServerInterface(csi.getShortName());
+					EList<ClientServerOperation> ops = csi.getOperations();
+					for (ClientServerOperation op : ops) {
+						ArCsOperation aco = new ArCsOperation(op.getShortName());
+						((ArClientServerInterface) ae).AddOperation(aco);
+						EList<ArgumentDataPrototype> args = op.getArguments();
+						for (ArgumentDataPrototype arg : args) {
+							ArgumentDirectionEnum direct = arg.getDirection();
+							String direct_str = null;
+							switch (direct.getValue()) {
+							case ArgumentDirectionEnum.IN_VALUE:
+								direct_str = "in";
+								break;
+							case ArgumentDirectionEnum.OUT_VALUE:
+								direct_str = "out";
+								break;
+							case ArgumentDirectionEnum.INOUT_VALUE:
+								direct_str = "inout";
+								break;
+							}
+							ArCsArgument aca = new ArCsArgument(arg.getShortName(), direct_str);
+							aco.AddArgument(aca);
+						}
+					}
+				} else if (root instanceof SenderReceiverInterface) {
+					PortInterface pii = (PortInterface) root;
+					System.out.println("port interface class:" + pii.getClass());
+					ae = new ArInterface(pii.getShortName());
+				}
 			} else if (root instanceof SwComponentType) {
 				Assert.isTrue(root instanceof Referrable);
 				ae = new SwCompo(((Referrable) root).getShortName());
 			} else if (root instanceof PortPrototype) {
 				System.out.println("port class:" + root.getClass());
-				boolean is_input = root instanceof RPortPrototype;
-				Referrable pp = (Referrable) root;
-				String s_name = pp.getShortName();
-				ae = new SRPort(s_name, is_input);
+				PortPrototype pp = (PortPrototype) root;
+				ae = HandlePortPrototype(pp);
 			} else if (root instanceof SwcInternalBehavior) {
 				ae = new SwcBehaviour(name);
 			} else if (root instanceof InitEvent) {
@@ -180,21 +238,46 @@ public class InfoManager {
 	 */
 	protected void BasicLinkBuildPre(EObject root) {
 		
-		if (root instanceof PortInterface) {
-			PortInterface pii = (PortInterface) root;
-			ArInterface intf = (ArInterface) eobject_map.get(pii);
-			EList<EObject> ecnts = pii.eContents();
-			for (EObject ecnt : ecnts) {
-				if (ecnt instanceof VariableDataPrototype) {
-					VariableDataPrototype vdpi = (VariableDataPrototype) ecnt;
-					AutosarDataType type = vdpi.getType();
-					String ts = type.toString();
-					String data_type_path = StringHelper.GetProxyValidPath(ts);
-					ArElement data_type_ele = path_map.get(data_type_path);
-					intf.SetType((ArDataType) data_type_ele);
-				}
+		if (root instanceof ImplementationDataType) {
+			ImplementationDataType idt = (ImplementationDataType) root;
+			ArDataType adt = (ArDataType) eobject_map.get(idt);
+			SwDataDefProps sddp = idt.getSwDataDefProps();
+			EList<SwDataDefPropsConditional> sddpvs = sddp.getSwDataDefPropsVariants();
+			for (SwDataDefPropsConditional sddpv : sddpvs) {
+				EObject eo = sddpv.getBaseType();
+				ArBaseDataType abdt = (ArBaseDataType) eobject_map.get(eo);
+				adt.AddBaseDataType(abdt);
 			}
-			
+		} else if (root instanceof SwBaseType) {
+			// not handle
+		} else if (root instanceof PortInterface) {
+			if (root instanceof ClientServerInterface) {
+				ClientServerInterface csi = (ClientServerInterface) root;
+				EList<ClientServerOperation> ops = csi.getOperations();
+				for (ClientServerOperation op : ops) {
+					EList<ArgumentDataPrototype> args = op.getArguments();
+					for (ArgumentDataPrototype arg : args) {
+						AutosarDataType atp = arg.getType();
+						ArDataType adt = (ArDataType) eobject_map.get(atp);
+						
+						ArCsArgument aca = (ArCsArgument) eobject_map.get(arg);
+						aca.SetDataType(adt);
+					}
+				}
+			} else if (root instanceof SenderReceiverInterface) {
+				SenderReceiverInterface sri = (SenderReceiverInterface) root;
+				ArInterface intf = (ArInterface) eobject_map.get(sri);
+				EList<VariableDataPrototype> vdps = sri.getDataElements();
+				for (VariableDataPrototype vdpi : vdps) {
+//					String ts = type.toString();
+//					String data_type_path = StringHelper.GetProxyValidPath(ts);
+//					ArElement data_type_ele = path_map.get(data_type_path);
+//					intf.SetType((ArDataType) data_type_ele);
+					intf.AddDataElement(new ArDataElement(vdpi.getShortName(), (ArDataType) eobject_map.get(vdpi.getType())));
+				}
+			} else {
+				Assert.isTrue(false, "Unsupportted port interface!");
+			}
 		} else if (root instanceof SwComponentType) {
 			// not handle
 		} else if (root instanceof PortPrototype) {
@@ -428,6 +511,107 @@ public class InfoManager {
 			}
 		}
 		return curr;
+	}
+	
+	public ArElement HandlePortPrototype(PortPrototype pp) {
+		EList<PPortComSpec> css = null;
+		EList<RPortComSpec> rcs = null;
+		if (pp instanceof PPortPrototype) {
+			PPortPrototype ppp = (PPortPrototype) pp;
+			css = ppp.getProvidedComSpecs();
+			
+		} else if (pp instanceof RPortPrototype) {
+			RPortPrototype rpp = (RPortPrototype) pp;
+			rcs = rpp.getRequiredComSpecs();
+			
+		} else if (pp instanceof PRPortPrototype) {
+			PRPortPrototype prpp = (PRPortPrototype) pp;
+			css = prpp.getProvidedComSpecs();
+			rcs = prpp.getRequiredComSpecs();
+		}
+		
+		Boolean is_cs = null;
+		Boolean is_r = null;
+		for (PPortComSpec ppcs : css) {
+			if (ppcs instanceof ServerComSpec) {
+				Assert.isTrue(is_cs == null || is_cs);
+				is_cs = true;
+			} else if (ppcs instanceof SenderComSpec) {
+				Assert.isTrue(is_cs == null || !is_cs);
+				is_cs = false;
+			}
+			Assert.isTrue(is_r == null || !is_r);
+			is_r = false;
+		}
+		for (RPortComSpec rpcs : rcs) {
+			if (rpcs instanceof ClientComSpec) {
+				Assert.isTrue(is_cs == null || is_cs);
+				is_cs = true;
+			} else if (rpcs instanceof ReceiverComSpec) {
+				Assert.isTrue(is_cs == null || !is_cs);
+				is_cs = false;
+			}
+			Assert.isTrue(is_r == null || is_r);
+			is_r = true;
+		}
+		Assert.isTrue(is_cs != null);
+		Assert.isTrue(is_r != null);
+		ArElement ae = null;
+		if (is_cs) {
+			ae = new CSPort(pp.getShortName(), is_r);
+		} else {
+			ae = new SRPort(pp.getShortName(), is_r);
+		}
+		return ae;
+	}
+	
+	public void HandlePortPrototypeLink(PortPrototype pp) {
+		EList<PPortComSpec> css_l = null;
+		EList<RPortComSpec> rcs_l = null;
+		if (pp instanceof PPortPrototype) {
+			PPortPrototype ppp = (PPortPrototype) pp;
+			css_l = ppp.getProvidedComSpecs();
+			
+		} else if (pp instanceof RPortPrototype) {
+			RPortPrototype rpp = (RPortPrototype) pp;
+			rcs_l = rpp.getRequiredComSpecs();
+			
+		} else if (pp instanceof PRPortPrototype) {
+			PRPortPrototype prpp = (PRPortPrototype) pp;
+			css_l = prpp.getProvidedComSpecs();
+			rcs_l = prpp.getRequiredComSpecs();
+		}
+		// Solved. Please handle var_proto first and then here, var_proto should be extracted as an element. 
+		for (PPortComSpec ppcs : css_l) {
+			if (ppcs instanceof ServerComSpec) {
+				ServerComSpec scs = (ServerComSpec) ppcs;
+				ClientServerOperation cso = scs.getOperation();
+				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
+				CSPort csp = (CSPort) eobject_map.get(pp);
+				csp.SetCSOperation(aco);
+			} else if (ppcs instanceof SenderComSpec) {
+				SenderComSpec scs = (SenderComSpec) ppcs;
+				AutosarDataPrototype de = scs.getDataElement();
+				ArDataElement ade = (ArDataElement) eobject_map.get(de);
+				SRPort srp = (SRPort) eobject_map.get(pp);
+				srp.SetInterfaceDataElement(ade);
+			}
+		}
+		for (RPortComSpec rpcs : rcs_l) {
+			if (rpcs instanceof ClientComSpec) {
+				ClientComSpec ccs = (ClientComSpec) rpcs;
+				ClientServerOperation cso = ccs.getOperation();
+				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
+				CSPort csp = (CSPort) eobject_map.get(pp);
+				csp.SetCSOperation(aco);
+			} else if (rpcs instanceof ReceiverComSpec) {
+				ReceiverComSpec rcs = (ReceiverComSpec) rpcs;
+				AutosarDataPrototype de = rcs.getDataElement();
+				ArDataElement ade = (ArDataElement) eobject_map.get(de);
+				SRPort srp = (SRPort) eobject_map.get(pp);
+				srp.SetInterfaceDataElement(ade);
+			}
+		}
 	}
 	
 }

@@ -3,6 +3,7 @@ package ar.swc;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
+import ar.intf.ArDataElement;
 import ar.intf.ArInterface;
 import util.ArUtil;
 import util.StringHelper;
@@ -12,6 +13,8 @@ public class SRPort extends ArElement {
 	String name = null;
 	
 	boolean is_input = false;
+	
+	ArDataElement a_de = null;
 	
 	VarAcc v_acc = null;
 	
@@ -31,8 +34,12 @@ public class SRPort extends ArElement {
 		this.is_input = is_input;
 	}
 	
-	public String GetName() {
-		return name;
+	public void SetInterfaceDataElement(ArDataElement ade) {
+		this.a_de = ade;
+	}
+	
+	public ArDataElement GetInterfaceDataElement() {
+		return a_de;
 	}
 	
 	private void SetSource(SRPort source) {

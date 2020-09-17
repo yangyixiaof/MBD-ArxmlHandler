@@ -1,19 +1,20 @@
 package ar.intf;
 
+import java.util.ArrayList;
+
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
-import ar.type.ArDataType;
 
 public class ArInterface extends ArElement {
 	
-	String name = null;
-	ArDataType type = null;
 //	String ctype = null;
 //	String full_path = null;
 	
 //	int read_times = 0;
 //	int write_times = 0;
+	
+	ArrayList<ArDataElement> data_eles = new ArrayList<ArDataElement>();
 	
 	public ArInterface(String name) {
 		super(name);
@@ -25,12 +26,12 @@ public class ArInterface extends ArElement {
 		return name;
 	}
 	
-	public void SetType(ArDataType type) {
-		this.type = type;
+	public void AddDataElement(ArDataElement de) {
+		this.data_eles.add(de);
 	}
 	
-	public ArDataType GetType() {
-		return type;
+	public ArrayList<ArDataElement> GetAllDataElements() {
+		return data_eles;
 	}
 	
 //	public String GetCType() {

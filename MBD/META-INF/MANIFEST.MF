@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Automatic-Module-Name: MBD
 Export-Package: ar,
  ar.intf,
+ ar.intf.cs,
  ar.swc,
  ar.type,
  ar.util,
