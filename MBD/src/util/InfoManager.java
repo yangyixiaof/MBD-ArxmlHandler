@@ -1,5 +1,6 @@
 package util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,6 +88,11 @@ public class InfoManager {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			if (e instanceof InvocationTargetException) {
+				InvocationTargetException ite = (InvocationTargetException) e;
+				Throwable cause = ite.getCause();
+				cause.printStackTrace();
+			}
 		}
 	}
 	
@@ -111,14 +117,17 @@ public class InfoManager {
 //	}
 	
 	private void VisitEObject(EObject root, final String invoke_method_pre, final String invoke_method_post) throws Exception {
+		boolean ctn = false;
 		if (invoke_method_pre != null) {
 			Method md = this.getClass().getMethod(invoke_method_pre, EObject.class);
-			md.invoke(this, root);
+			ctn = (boolean) md.invoke(this, root);
 		}
 		
-		EList<EObject> ecnts = root.eContents();
-		for (EObject ecnt : ecnts) {
-			VisitEObject(ecnt, invoke_method_pre, invoke_method_post);
+		if (ctn) {
+			EList<EObject> ecnts = root.eContents();
+			for (EObject ecnt : ecnts) {
+				VisitEObject(ecnt, invoke_method_pre, invoke_method_post);
+			}
 		}
 		
 		if (invoke_method_post != null) {
@@ -127,7 +136,7 @@ public class InfoManager {
 		}
 	}
 	
-	protected void BasicElementBuildPre(EObject root) {
+	public boolean BasicElementBuildPre(EObject root) {
 		if (root instanceof Referrable) {
 			Referrable rrf = (Referrable) root;
 			
@@ -139,62 +148,66 @@ public class InfoManager {
 				ImplementationDataType idt = (ImplementationDataType) root;
 				String s_name = idt.getShortName();
 				ae = new ArDataType(s_name);
+//				System.out.println("==##sri name:" + ((Referrable) idt.eContainer()).getShortName() + "#idt_name:" + idt.toString() + "#idt_addr:" + idt.hashCode());
 			} else if (root instanceof SwBaseType) {
 				SwBaseType sbt = (SwBaseType) root;
 				String s_name = sbt.getShortName();
 				ae = new ArBaseDataType(s_name);
-			} else if (root instanceof PortInterface) {
-				if (root instanceof ClientServerInterface) {
-					ClientServerInterface csi = (ClientServerInterface) root;
-					ae = new ArClientServerInterface(csi.getShortName());
-					EList<ClientServerOperation> ops = csi.getOperations();
-					for (ClientServerOperation op : ops) {
-						ArCsOperation aco = new ArCsOperation(op.getShortName());
-						((ArClientServerInterface) ae).AddOperation(aco);
-						EList<ArgumentDataPrototype> args = op.getArguments();
-						for (ArgumentDataPrototype arg : args) {
-							ArgumentDirectionEnum direct = arg.getDirection();
-							String direct_str = null;
-							switch (direct.getValue()) {
-							case ArgumentDirectionEnum.IN_VALUE:
-								direct_str = "in";
-								break;
-							case ArgumentDirectionEnum.OUT_VALUE:
-								direct_str = "out";
-								break;
-							case ArgumentDirectionEnum.INOUT_VALUE:
-								direct_str = "inout";
-								break;
-							}
-							ArCsArgument aca = new ArCsArgument(arg.getShortName(), direct_str);
-							aco.AddArgument(aca);
-						}
-					}
-				} else if (root instanceof SenderReceiverInterface) {
-					PortInterface pii = (PortInterface) root;
-					System.out.println("port interface class:" + pii.getClass());
-					ae = new ArInterface(pii.getShortName());
+			} else if (root instanceof ClientServerInterface) {
+				ClientServerInterface csi = (ClientServerInterface) root;
+				ae = new ArClientServerInterface(csi.getShortName());
+			} else if (root instanceof ClientServerOperation) {
+				ClientServerOperation op = (ClientServerOperation) root;
+				ae = new ArCsOperation(op.getShortName());
+				ArClientServerInterface acsi = (ArClientServerInterface) eobject_map.get(root.eContainer());
+				acsi.AddOperation((ArCsOperation) ae);
+			} else if (root instanceof ArgumentDataPrototype) {
+				ArgumentDataPrototype arg = (ArgumentDataPrototype) root;
+				ArgumentDirectionEnum direct = arg.getDirection();
+				String direct_str = null;
+				switch (direct.getValue()) {
+				case ArgumentDirectionEnum.IN_VALUE:
+					direct_str = "in";
+					break;
+				case ArgumentDirectionEnum.OUT_VALUE:
+					direct_str = "out";
+					break;
+				case ArgumentDirectionEnum.INOUT_VALUE:
+					direct_str = "inout";
+					break;
 				}
+				ae = new ArCsArgument(arg.getShortName(), direct_str);
+				ArCsOperation aco = (ArCsOperation) eobject_map.get(root.eContainer());
+				aco.AddArgument((ArCsArgument) ae);
+			} else if (root instanceof VariableDataPrototype) {
+				SenderReceiverInterface sri = (SenderReceiverInterface) root.eContainer();
+				ArInterface intf = (ArInterface) eobject_map.get(sri);
+				ae = new ArDataElement(name);
+				intf.AddDataElement((ArDataElement) ae);
+			} else if (root instanceof SenderReceiverInterface) {
+				PortInterface pii = (PortInterface) root;
+//				System.out.println("port interface class:" + pii.getClass());
+				ae = new ArInterface(pii.getShortName());
 			} else if (root instanceof SwComponentType) {
 				Assert.isTrue(root instanceof Referrable);
 				ae = new SwCompo(((Referrable) root).getShortName());
 			} else if (root instanceof PortPrototype) {
-				System.out.println("port class:" + root.getClass());
+//				System.out.println("port class:" + root.getClass());
 				PortPrototype pp = (PortPrototype) root;
 				ae = HandlePortPrototype(pp);
 			} else if (root instanceof SwcInternalBehavior) {
 				ae = new SwcBehaviour(name);
 			} else if (root instanceof InitEvent) {
-				// not handle
+				return false;
 			} else if (root instanceof TimingEvent) {
-				// not handle
+				return false;
 			} else if (root instanceof RunnableEntity) {
 				RunnableEntity rei = (RunnableEntity) root;
 				ae = new RunEnt(rei.gGetShortName());
 			} else if (root instanceof SwConnector) {
-				// do nothing.
+				return false;
 			} else if (root instanceof SwComponentPrototype) {
-				// do nothing.
+				return false;
 			} else {
 				ae = new ArElement(name);
 			}
@@ -203,18 +216,21 @@ public class InfoManager {
 				eobject_map.put(root, ae);
 				
 				EObject ans = SearchForNearestAncestorWithArElement(root);
-				if (ans == root) {
+				if (ans == null) {
 					roots.add(ae);
 				} else {
-					Assert.isTrue(ans == root.eContainer());
+					Assert.isTrue(ans == root.eContainer(), "ans:" + ans + "#root.eContainer():" + root.eContainer() + "#root.eContainer().eContainer():" + root.eContainer().eContainer());
 					ArElement ans_ae = eobject_map.get(ans);
+					Assert.isTrue(ans_ae != null);
 					ans_ae.AddChildElement(ae);
 				}
 			}
 		}
+		
+		return true;
 	}
 	
-	protected void BasicElementBuildPost(EObject root) {
+	public void BasicElementBuildPost(EObject root) {
 		ArElement ae = eobject_map.get(root);
 		if (ae != null) {
 			if (ae instanceof SwComponentType) {
@@ -236,7 +252,7 @@ public class InfoManager {
 	/**
 	 * second phase, handle links except SwComponentPrototype and Connector. 
 	 */
-	protected void BasicLinkBuildPre(EObject root) {
+	public boolean BasicLinkBuildPre(EObject root) {
 		
 		if (root instanceof ImplementationDataType) {
 			ImplementationDataType idt = (ImplementationDataType) root;
@@ -245,7 +261,10 @@ public class InfoManager {
 			EList<SwDataDefPropsConditional> sddpvs = sddp.getSwDataDefPropsVariants();
 			for (SwDataDefPropsConditional sddpv : sddpvs) {
 				EObject eo = sddpv.getBaseType();
-				ArBaseDataType abdt = (ArBaseDataType) eobject_map.get(eo);
+				Assert.isTrue(eo.eIsProxy());
+				String abdt_path = StringHelper.GetProxyValidPath(eo.toString());
+				ArBaseDataType abdt = (ArBaseDataType) path_map.get(abdt_path);
+//				ArBaseDataType abdt = (ArBaseDataType) eobject_map.get(eo);
 				adt.AddBaseDataType(abdt);
 			}
 		} else if (root instanceof SwBaseType) {
@@ -258,7 +277,10 @@ public class InfoManager {
 					EList<ArgumentDataPrototype> args = op.getArguments();
 					for (ArgumentDataPrototype arg : args) {
 						AutosarDataType atp = arg.getType();
-						ArDataType adt = (ArDataType) eobject_map.get(atp);
+						Assert.isTrue(atp.eIsProxy());
+						String adt_path = StringHelper.GetProxyValidPath(atp.toString());
+						ArDataType adt = (ArDataType) path_map.get(adt_path);
+//						ArDataType adt = (ArDataType) eobject_map.get(atp);
 						
 						ArCsArgument aca = (ArCsArgument) eobject_map.get(arg);
 						aca.SetDataType(adt);
@@ -266,14 +288,21 @@ public class InfoManager {
 				}
 			} else if (root instanceof SenderReceiverInterface) {
 				SenderReceiverInterface sri = (SenderReceiverInterface) root;
-				ArInterface intf = (ArInterface) eobject_map.get(sri);
 				EList<VariableDataPrototype> vdps = sri.getDataElements();
 				for (VariableDataPrototype vdpi : vdps) {
 //					String ts = type.toString();
 //					String data_type_path = StringHelper.GetProxyValidPath(ts);
 //					ArElement data_type_ele = path_map.get(data_type_path);
 //					intf.SetType((ArDataType) data_type_ele);
-					intf.AddDataElement(new ArDataElement(vdpi.getShortName(), (ArDataType) eobject_map.get(vdpi.getType())));
+//					intf.AddDataElement(new ArDataElement(vdpi.getShortName(), (ArDataType) eobject_map.get(vdpi.getType())));
+					ImplementationDataType idt = (ImplementationDataType) vdpi.getType();
+//					System.out.println("==##is_proxy:" + idt.eIsProxy() + "#sri name:" + sri.getShortName() + "#idt_name:" + idt.toString() + "#idt_addr:" + idt.hashCode());
+					String adt_path = StringHelper.GetProxyValidPath(idt.toString());
+					ArDataType adt = (ArDataType) path_map.get(adt_path);
+//					ArDataType adt = (ArDataType) eobject_map.get(idt);
+					Assert.isTrue(adt != null);
+					ArDataElement ade = (ArDataElement) eobject_map.get(vdpi);
+					ade.SetDataType(adt);
 				}
 			} else {
 				Assert.isTrue(false, "Unsupportted port interface!");
@@ -297,12 +326,14 @@ public class InfoManager {
 		} else {
 			// do nothing.
 		}
+		
+		return true;
 	}
 	
 	/**
 	 * third phase, handle SwComponentPrototype and its links. 
 	 */
-	protected void SwComponentPrototypeBuildPre(EObject root) {
+	public boolean SwComponentPrototypeBuildPre(EObject root) {
 		
 		if (root instanceof PortInterface) {
 			// not handle
@@ -338,12 +369,14 @@ public class InfoManager {
 		} else {
 			// do nothing.
 		}
+		
+		return true;
 	}
 	
 	/**
 	 * forth phase, handle Connector and its links. 
 	 */
-	protected void SwcConnectorBuildPre(EObject root) {
+	public boolean SwcConnectorBuildPre(EObject root) {
 		if (root instanceof PortInterface) {
 			// not handle
 		} else if (root instanceof SwComponentType) {
@@ -416,6 +449,8 @@ public class InfoManager {
 		} else {
 			// do nothing.
 		}
+		
+		return true;
 	}
 	
 	private ArrayList<ArInterface> GetAllInterfaces() {
@@ -490,7 +525,7 @@ public class InfoManager {
 	}
 	
 	private void GeneratePathForElement(ArElement root) {
-		if (root.GetGeneratedPath() != null) {
+		if (root.GetGeneratedPath() == null) {
 			root.GeneratePath();
 			path_map.put(root.GetGeneratedPath(), root);
 		}
@@ -501,16 +536,23 @@ public class InfoManager {
 	}
 
 	private EObject SearchForNearestAncestorWithArElement(EObject start) {
+		EObject result = null;
 		EObject curr = start;
 		while (true) {
 			EObject par = curr.eContainer();
-			if (par != null && eobject_map.containsKey(par)) {
-				curr = par;
-			} else {
+			if (par == null || eobject_map.containsKey(par)) {
+				if (par == null) {
+					result = null;
+				} else {
+					result = par;
+				}
 				break;
+			} else {
+				curr = par;
 			}
 		}
-		return curr;
+//		Assert.isTrue(result != null && eobject_map.containsKey(result), "result start same:" + (start == result) + "#result:" + result + "#eo_map_res:" + eobject_map.containsKey(result));
+		return result;
 	}
 	
 	public ArElement HandlePortPrototype(PortPrototype pp) {
@@ -532,27 +574,31 @@ public class InfoManager {
 		
 		Boolean is_cs = null;
 		Boolean is_r = null;
-		for (PPortComSpec ppcs : css) {
-			if (ppcs instanceof ServerComSpec) {
-				Assert.isTrue(is_cs == null || is_cs);
-				is_cs = true;
-			} else if (ppcs instanceof SenderComSpec) {
-				Assert.isTrue(is_cs == null || !is_cs);
-				is_cs = false;
+		if (css != null) {
+			for (PPortComSpec ppcs : css) {
+				if (ppcs instanceof ServerComSpec) {
+					Assert.isTrue(is_cs == null || is_cs);
+					is_cs = true;
+				} else if (ppcs instanceof SenderComSpec) {
+					Assert.isTrue(is_cs == null || !is_cs);
+					is_cs = false;
+				}
+				Assert.isTrue(is_r == null || !is_r);
+				is_r = false;
 			}
-			Assert.isTrue(is_r == null || !is_r);
-			is_r = false;
 		}
-		for (RPortComSpec rpcs : rcs) {
-			if (rpcs instanceof ClientComSpec) {
-				Assert.isTrue(is_cs == null || is_cs);
-				is_cs = true;
-			} else if (rpcs instanceof ReceiverComSpec) {
-				Assert.isTrue(is_cs == null || !is_cs);
-				is_cs = false;
+		if (rcs != null) {
+			for (RPortComSpec rpcs : rcs) {
+				if (rpcs instanceof ClientComSpec) {
+					Assert.isTrue(is_cs == null || is_cs);
+					is_cs = true;
+				} else if (rpcs instanceof ReceiverComSpec) {
+					Assert.isTrue(is_cs == null || !is_cs);
+					is_cs = false;
+				}
+				Assert.isTrue(is_r == null || is_r);
+				is_r = true;
 			}
-			Assert.isTrue(is_r == null || is_r);
-			is_r = true;
 		}
 		Assert.isTrue(is_cs != null);
 		Assert.isTrue(is_r != null);
@@ -586,13 +632,19 @@ public class InfoManager {
 			if (ppcs instanceof ServerComSpec) {
 				ServerComSpec scs = (ServerComSpec) ppcs;
 				ClientServerOperation cso = scs.getOperation();
-				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
+				Assert.isTrue(cso.eIsProxy());
+				String aco_path = StringHelper.GetProxyValidPath(cso.toString());
+				ArCsOperation aco = (ArCsOperation) path_map.get(aco_path);
+//				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
 				CSPort csp = (CSPort) eobject_map.get(pp);
 				csp.SetCSOperation(aco);
 			} else if (ppcs instanceof SenderComSpec) {
 				SenderComSpec scs = (SenderComSpec) ppcs;
 				AutosarDataPrototype de = scs.getDataElement();
-				ArDataElement ade = (ArDataElement) eobject_map.get(de);
+				Assert.isTrue(de.eIsProxy());
+				String aco_path = StringHelper.GetProxyValidPath(de.toString());
+				ArDataElement ade = (ArDataElement) path_map.get(aco_path);
+//				ArDataElement ade = (ArDataElement) eobject_map.get(de);
 				SRPort srp = (SRPort) eobject_map.get(pp);
 				srp.SetInterfaceDataElement(ade);
 			}
@@ -601,13 +653,19 @@ public class InfoManager {
 			if (rpcs instanceof ClientComSpec) {
 				ClientComSpec ccs = (ClientComSpec) rpcs;
 				ClientServerOperation cso = ccs.getOperation();
-				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
+				Assert.isTrue(cso.eIsProxy());
+				String aco_path = StringHelper.GetProxyValidPath(cso.toString());
+				ArCsOperation aco = (ArCsOperation) path_map.get(aco_path);
+//				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
 				CSPort csp = (CSPort) eobject_map.get(pp);
 				csp.SetCSOperation(aco);
 			} else if (rpcs instanceof ReceiverComSpec) {
 				ReceiverComSpec rcs = (ReceiverComSpec) rpcs;
 				AutosarDataPrototype de = rcs.getDataElement();
-				ArDataElement ade = (ArDataElement) eobject_map.get(de);
+				Assert.isTrue(de.eIsProxy());
+				String aco_path = StringHelper.GetProxyValidPath(de.toString());
+				ArDataElement ade = (ArDataElement) path_map.get(aco_path);
+//				ArDataElement ade = (ArDataElement) eobject_map.get(de);
 				SRPort srp = (SRPort) eobject_map.get(pp);
 				srp.SetInterfaceDataElement(ade);
 			}

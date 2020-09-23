@@ -28,6 +28,7 @@ public class ArInterface extends ArElement {
 	
 	public void AddDataElement(ArDataElement de) {
 		this.data_eles.add(de);
+		this.eles.add(de);
 	}
 	
 	public ArrayList<ArDataElement> GetAllDataElements() {
@@ -65,8 +66,17 @@ public class ArInterface extends ArElement {
 //			func = "addInport";
 //		}
 //		return (func + "(\"" + gen_path + "\",\"" + ctype + "\");");
-		Assert.isTrue(false, "Not implemented yet!");
-		return null;
+//		Assert.isTrue(false, "Not implemented yet!");
+		String code = "";
+		for (ArDataElement ele : data_eles) {
+			Assert.isTrue(ele != null);
+			Assert.isTrue(ele.GetDataType() != null, "strange interface name:" + name);
+			code += ",[";
+			code += "\"" + ele.GetName() + "\"" + "," + "\"" + ele.GetDataType().ToScript() + "\"" + "," + "\"" + "0" + "\"";
+			code += "]";
+		}
+		String script = "AddStruct(\"StructPage\",\"" + name + "\"" + code + ");";
+		return script;
 	}
 	
 	@Override

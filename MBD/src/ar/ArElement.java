@@ -55,7 +55,7 @@ public class ArElement implements ArCloneable, ArProperty {
 
 	@Override
 	public String GetGeneratedPath() {
-		Assert.isTrue(path != null);
+//		Assert.isTrue(path != null);
 		return path;
 	}
 

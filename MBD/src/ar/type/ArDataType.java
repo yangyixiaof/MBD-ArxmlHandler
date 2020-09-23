@@ -2,6 +2,8 @@ package ar.type;
 
 import java.util.ArrayList;
 
+import org.eclipse.core.runtime.Assert;
+
 import ar.ArElement;
 
 public class ArDataType extends ArElement {
@@ -18,6 +20,12 @@ public class ArDataType extends ArElement {
 	public void AddBaseDataType(ArBaseDataType bdt) {
 		data_types.add(bdt);
 	}
+	
+	@Override
+		public String ToScript() {
+			Assert.isTrue(data_types.size() == 1);
+			return data_types.get(0).GetName();
+		}
 	
 //	public void AddDataElement(String name, Object type) {
 //		data_names.add(name);

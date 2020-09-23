@@ -7,8 +7,11 @@ public class ArDataElement extends ArElement {
 	
 	ArDataType type = null;
 	
-	public ArDataElement(String name, ArDataType type) {
+	public ArDataElement(String name) {
 		super(name);
+	}
+	
+	public void SetDataType(ArDataType type) {
 		this.type = type;
 	}
 	
