@@ -12,8 +12,10 @@ public class SwCompo extends ArElement {
 	
 	boolean is_referred = false;
 	
+	ArrayList<CSPort> cs_ports = new ArrayList<CSPort>();
 	ArrayList<SRPort> ports = new ArrayList<SRPort>();
 	ArrayList<SwCompo> swcs = new ArrayList<SwCompo>();
+	ArrayList<RunEnt> runs = new ArrayList<RunEnt>();
 	
 	ArrayList<SwCompo> dependencies = new ArrayList<SwCompo>();
 	
@@ -75,19 +77,57 @@ public class SwCompo extends ArElement {
 //	}
 	
 	public String ToScript() {
-		String res = "";
-		
-		res += "addFunction(\"" + path +  "\", \"" + (swcs.size() == 0 ? "APPLICATION" : "COMPOSITION") + "\");";
+		ArrayList<SRPort> inputs = new ArrayList<SRPort>();
+		ArrayList<SRPort> outputs = new ArrayList<SRPort>();
 		
 		for (SRPort p : ports) {
-			res += p.ToScript();
+			if (p.IsInput()) {
+				inputs.add(p);
+			} else {
+				outputs.add(p);
+			}
+		}
+		
+		StringBuilder in_cnt = new StringBuilder("");
+		StringBuilder out_cnt = new StringBuilder("");
+		
+		in_cnt.append("[");
+		for (SRPort in : inputs) {
+			in_cnt.append("[" + "\"" + in.GetName() + "\"" + "," + "\"" + in.GetInterfaceDataElement().ToScript() + "\"," + "\"0\"" + "],");
+		}
+		if (inputs.size() > 0) {
+			in_cnt.deleteCharAt(in_cnt.length()-1);
+		}
+		in_cnt.append("]");
+		
+		out_cnt.append("[");
+		for (SRPort out : outputs) {
+			out_cnt.append("[" + "\"" + out.GetName() + "\"" + "," + "\"" + out.GetInterfaceDataElement().ToScript() + "\"," + "\"0\"" + "],");
+		}
+		if (outputs.size() > 0) {
+			out_cnt.deleteCharAt(out_cnt.length()-1);
+		}
+		out_cnt.append("]");
+		
+		StringBuilder res = new StringBuilder("");
+		
+		res.append("AddModelPage(\"" + GetGeneratedPath() + "\",\"ProgramModelPage\");");
+		res.append("AddFunction(\"" + GetGeneratedPath() + "\",\"" + GetName() + "\"," + in_cnt.toString() + ");");
+		res.append("AddReturnValue(\"" + GetGeneratedPath() + "\",\"" + GetName() + "\"," + out_cnt.toString() + ");");
+		
+		for (CSPort p : cs_ports) {
+			res.append(p.ToScript());
+		}
+		
+		for (RunEnt re : runs) {
+			res.append(re.ToScript());
 		}
 		
 		for (SwCompo swc : swcs) {
-			res += swc.ToScript();
+			res.append(swc.ToScript());
 		}
 		
-		return res;
+		return res.toString();
 	}
 
 	@Override
@@ -125,8 +165,14 @@ public class SwCompo extends ArElement {
 
 	public void CardChildsAccordingToTypes() {
 		for (ArElement ele : eles) {
+			if (ele instanceof CSPort) {
+				cs_ports.add((CSPort) ele);
+			}
 			if (ele instanceof SRPort) {
 				ports.add((SRPort) ele);
+			}
+			if (ele instanceof RunEnt) {
+				runs.add((RunEnt) ele);
 			}
 			if (ele instanceof SwCompo) {
 				swcs.add((SwCompo) ele);

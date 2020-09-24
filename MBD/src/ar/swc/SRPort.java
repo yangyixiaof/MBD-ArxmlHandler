@@ -4,8 +4,6 @@ import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
 import ar.intf.ArDataElement;
-import ar.intf.ArInterface;
-import util.ArUtil;
 import util.StringHelper;
 
 public class SRPort extends ArElement {
@@ -16,13 +14,11 @@ public class SRPort extends ArElement {
 	
 	ArDataElement a_de = null;
 	
-	VarAcc v_acc = null;
+//	VarAcc v_acc = null;
 	
 	SwCompo relation_base = null;
 	
 //	SwCompo swc = null;
-	
-	String gen_path = null;
 	
 	SRPort source = null;
 	
@@ -60,38 +56,42 @@ public class SRPort extends ArElement {
 		return target;
 	}
 
-	public void SetVarAcc(VarAcc v_acc) {
-		Assert.isTrue(this.v_acc == null && v_acc != null);
-		this.v_acc = v_acc;
-	}
+//	public void SetVarAcc(VarAcc v_acc) {
+//		Assert.isTrue(this.v_acc == null && v_acc != null);
+//		this.v_acc = v_acc;
+//	}
 	
-	public VarAcc GetVarAcc() {
-		return v_acc;
-	}
+//	public VarAcc GetVarAcc() {
+//		return v_acc;
+//	}
 	
 	public boolean IsInput() {
 		return is_input;
 	}
 
-	@Override
-	public String ToScript() {
-		boolean is_input_port = IsInput();
-		String func = "addOutport";
-		if (is_input_port) {
-			func = "addInport";
-		}
-		String ctype = "Unknown";
-		ArInterface io = ArUtil.TraceToTerminal(this);
-		if (io != null) {
-			Assert.isTrue(false, "The io type not handled!");
-//			ctype = io.GetCType();
-		}
-		return (func + "(\"" + StringHelper.NonLastPartInPath(gen_path) + "\",\"/" + name + "\",\"" + ctype + "\");");
-	}
+//	@Override
+//	public String ToScript() {
+//		boolean is_input_port = IsInput();
+//		String func = "addOutport";
+//		if (is_input_port) {
+//			func = "addInport";
+//		}
+//		String ctype = "Unknown";
+//		ArSenderReceiverInterface io = ArUtil.TraceToTerminal(this);
+//		if (io != null) {
+//			Assert.isTrue(false, "The io type not handled!");
+////			ctype = io.GetCType();
+//		}
+//		return (func + "(\"" + StringHelper.NonLastPartInPath(gen_path) + "\",\"/" + name + "\",\"" + ctype + "\");");
+//	}
 	
 	public String ToRelationScript() {
 		if (target != null) {
-			String res = "addRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\",\"" + StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\");";
+//			String res = "addRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\",\"" + StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\");";
+			String relative_src = StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath());
+			String relative_tgt = StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath());
+			
+			String res = "AddRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.NonLastPartInPath(relative_src) + "\",\"" + StringHelper.LastPartInPath(relative_src) + "\",\"" + StringHelper.NonLastPartInPath(relative_tgt) + "\",\"" + StringHelper.LastPartInPath(relative_tgt) + "\")";
 			return res;
 		}
 		return "";
@@ -101,9 +101,9 @@ public class SRPort extends ArElement {
 	public Object ArClone() {
 		Assert.isTrue(relation_base == null);
 		SRPort p = new SRPort(name, is_input);
-		if (v_acc != null) {
-			p.SetVarAcc((VarAcc) v_acc.ArClone());
-		}
+//		if (v_acc != null) {
+//			p.SetVarAcc((VarAcc) v_acc.ArClone());
+//		}
 		return p;
 	}
 	

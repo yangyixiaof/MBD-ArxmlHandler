@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
 
-public class ArInterface extends ArElement {
+public class ArSenderReceiverInterface extends ArElement {
 	
 //	String ctype = null;
 //	String full_path = null;
@@ -16,7 +16,7 @@ public class ArInterface extends ArElement {
 	
 	ArrayList<ArDataElement> data_eles = new ArrayList<ArDataElement>();
 	
-	public ArInterface(String name) {
+	public ArSenderReceiverInterface(String name) {
 		super(name);
 //		this.ctype = ctype;
 //		this.full_path = full_path;

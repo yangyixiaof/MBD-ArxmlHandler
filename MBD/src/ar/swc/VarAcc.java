@@ -3,16 +3,16 @@ package ar.swc;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
-import ar.intf.ArInterface;
+import ar.intf.ArSenderReceiverInterface;
 
 public class VarAcc extends ArElement {
 	
 	boolean is_read = false;
 //	ArIO self_port = null;
-	ArInterface acc_intf = null;
+	ArSenderReceiverInterface acc_intf = null;
 	String acc_intf_property = null;
 	
-	public VarAcc(String name, boolean is_read, ArInterface acc_intf, String acc_intf_property) {// , ArIO self_port
+	public VarAcc(String name, boolean is_read, ArSenderReceiverInterface acc_intf, String acc_intf_property) {// , ArIO self_port
 		super(name);
 		this.is_read = is_read;
 //		this.self_port = self_port;
@@ -28,7 +28,7 @@ public class VarAcc extends ArElement {
 //		return self_port;
 //	}
 	
-	public ArInterface GetAccInterface() {
+	public ArSenderReceiverInterface GetAccInterface() {
 		return acc_intf;
 	}
 	

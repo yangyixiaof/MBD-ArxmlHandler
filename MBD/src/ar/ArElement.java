@@ -61,7 +61,7 @@ public class ArElement implements ArCloneable, ArProperty {
 
 	@Override
 	public String ToScript() {
-		Assert.isTrue(false, "Raw ArElement cannot be into script.");
+		Assert.isTrue(false, "Class " + getClass() + " cannot be into script.");
 		return null;
 	}
 

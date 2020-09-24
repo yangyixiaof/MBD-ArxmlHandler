@@ -13,7 +13,7 @@ import org.eclipse.emf.ecore.EObject;
 
 import ar.ArElement;
 import ar.intf.ArDataElement;
-import ar.intf.ArInterface;
+import ar.intf.ArSenderReceiverInterface;
 import ar.intf.cs.ArClientServerInterface;
 import ar.intf.cs.ArCsArgument;
 import ar.intf.cs.ArCsOperation;
@@ -181,13 +181,13 @@ public class InfoManager {
 				aco.AddArgument((ArCsArgument) ae);
 			} else if (root instanceof VariableDataPrototype) {
 				SenderReceiverInterface sri = (SenderReceiverInterface) root.eContainer();
-				ArInterface intf = (ArInterface) eobject_map.get(sri);
+				ArSenderReceiverInterface intf = (ArSenderReceiverInterface) eobject_map.get(sri);
 				ae = new ArDataElement(name);
 				intf.AddDataElement((ArDataElement) ae);
 			} else if (root instanceof SenderReceiverInterface) {
 				PortInterface pii = (PortInterface) root;
 //				System.out.println("port interface class:" + pii.getClass());
-				ae = new ArInterface(pii.getShortName());
+				ae = new ArSenderReceiverInterface(pii.getShortName());
 			} else if (root instanceof SwComponentType) {
 				Assert.isTrue(root instanceof Referrable);
 				ae = new SwCompo(((Referrable) root).getShortName());
@@ -453,12 +453,12 @@ public class InfoManager {
 		return true;
 	}
 	
-	private ArrayList<ArInterface> GetAllInterfaces() {
-		ArrayList<ArInterface> ais = new ArrayList<ArInterface>();
+	private ArrayList<ArSenderReceiverInterface> GetAllInterfaces() {
+		ArrayList<ArSenderReceiverInterface> ais = new ArrayList<ArSenderReceiverInterface>();
 		Collection<ArElement> vs = path_map.values();
 		for (ArElement v : vs) {
-			if (v instanceof ArInterface) {
-				ArInterface ai = (ArInterface) v;
+			if (v instanceof ArSenderReceiverInterface) {
+				ArSenderReceiverInterface ai = (ArSenderReceiverInterface) v;
 				ais.add(ai);
 			}
 		}
@@ -501,8 +501,11 @@ public class InfoManager {
 	 */
 	public String ToScript() {
 		String result = "";
-		ArrayList<ArInterface> intfs = GetAllInterfaces();
-		for (ArInterface intf : intfs) {
+		ArrayList<ArSenderReceiverInterface> intfs = GetAllInterfaces();
+		if (intfs.size() > 0) {
+			result += "AddModelPage(\"StructPage\",\"StructModelPage\")";
+		}
+		for (ArSenderReceiverInterface intf : intfs) {
 			result += intf.ToScript();
 		}
 		ArrayList<SwCompo> rs = GetAllSwComposNotProtoWithTopology();

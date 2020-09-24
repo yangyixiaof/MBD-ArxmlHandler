@@ -19,4 +19,9 @@ public class ArDataElement extends ArElement {
 		return type;
 	}
 	
+	@Override
+	public String ToScript() {
+		return type.ToScript();
+	}
+	
 }
