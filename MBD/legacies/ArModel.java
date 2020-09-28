@@ -92,7 +92,6 @@ public class ArModel extends ArElement {
 			
 		}
 		
-		
 		return result;
 	}
 	

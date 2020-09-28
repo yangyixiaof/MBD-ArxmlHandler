@@ -8,8 +8,6 @@ import util.StringHelper;
 
 public class SRPort extends ArElement {
 	
-	String name = null;
-	
 	boolean is_input = false;
 	
 	ArDataElement a_de = null;
@@ -99,8 +97,11 @@ public class SRPort extends ArElement {
 
 	@Override
 	public Object ArClone() {
-		Assert.isTrue(relation_base == null);
+		Assert.isTrue(relation_base == null && source == null && target == null);
+//		Assert.isTrue(a_de != null);
+		
 		SRPort p = new SRPort(name, is_input);
+		p.SetInterfaceDataElement(a_de);
 //		if (v_acc != null) {
 //			p.SetVarAcc((VarAcc) v_acc.ArClone());
 //		}

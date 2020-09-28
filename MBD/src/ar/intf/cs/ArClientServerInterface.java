@@ -14,7 +14,6 @@ public class ArClientServerInterface extends ArElement {
 	
 	public void AddOperation(ArCsOperation op) {
 		acos.add(op);
-		this.eles.add(op);
 	}
 	
 	public ArrayList<ArCsOperation> GetAllOperations() {

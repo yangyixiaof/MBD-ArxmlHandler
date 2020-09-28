@@ -15,65 +15,48 @@ public class SwCompo extends ArElement {
 	ArrayList<CSPort> cs_ports = new ArrayList<CSPort>();
 	ArrayList<SRPort> ports = new ArrayList<SRPort>();
 	ArrayList<SwCompo> swcs = new ArrayList<SwCompo>();
-	ArrayList<RunEnt> runs = new ArrayList<RunEnt>();
-	
-	ArrayList<SwCompo> dependencies = new ArrayList<SwCompo>();
+	ArrayList<SwcBehaviour> swc_bs = new ArrayList<SwcBehaviour>();
 	
 	public SwCompo(String name) {
 		super(name);
 	}
 	
-	public void SetProto() {
-		this.is_proto = true;
+	public void SetProto(boolean is_proto) {
+		this.is_proto = is_proto;
 	}
 	
 	public boolean IsProto() {
 		return is_proto;
 	}
 	
-	public void SetReferred() {
-		this.is_referred = true;
+	public void SetReferred(boolean is_referred) {
+		this.is_referred = is_referred;
 	}
 	
 	public boolean IsReferred() {
 		return is_referred;
 	}
 	
-//	public void AddPort(SRPort p) {
-//		ports.add(p);
-//	}
-//	
-//	public void AddRunEnt(RunEnt t) {
-//		run_ents.add(t);
-//	}
-	
-//	public void AddSwCompoInst(SwCompoInst swc) {
-//		swcs.add(swc);
-//	}
-//	
-//	public ArrayList<SwCompoInst> GetAllSwCompoInsts() {
-//		return swcs;
-//	}
-	
-	public void AddDependency(SwCompo depend) {
-		dependencies.add(depend);
+	public void AddCSPort(CSPort p) {
+		cs_ports.add(p);
 	}
 	
-	public boolean SatisfyDependencies(ArrayList<SwCompo> result) {
-		for (SwCompo dep : dependencies) {
-			if (!result.contains(dep)) {
-				return false;
-			}
-		}
-		return true;
+	public void AddSRPort(SRPort p) {
+		ports.add(p);
 	}
 	
-	public ArrayList<SRPort> GetAllPorts() {
-		return ports;
+	public void AddSwCompo(SwCompo swc) {
+		Assert.isTrue(swc != null);
+		Assert.isTrue(swc != this);
+		swcs.add(swc);
 	}
 	
-//	public ArrayList<RunEnt> GetRunEnts() {
-//		return run_ents;
+	public void AddSwcBehaviour(SwcBehaviour swc_b) {
+		swc_bs.add(swc_b);
+	}
+	
+//	public ArrayList<SRPort> GetAllPorts() {
+//		return ports;
 //	}
 	
 	public String ToScript() {
@@ -93,7 +76,11 @@ public class SwCompo extends ArElement {
 		
 		in_cnt.append("[");
 		for (SRPort in : inputs) {
-			in_cnt.append("[" + "\"" + in.GetName() + "\"" + "," + "\"" + in.GetInterfaceDataElement().ToScript() + "\"," + "\"0\"" + "],");
+			String srport_type = "Unknown";
+			if (in.GetInterfaceDataElement() != null) {
+				srport_type = in.GetInterfaceDataElement().ToScript();
+			}
+			in_cnt.append("[" + "\"" + in.GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "],");
 		}
 		if (inputs.size() > 0) {
 			in_cnt.deleteCharAt(in_cnt.length()-1);
@@ -102,7 +89,11 @@ public class SwCompo extends ArElement {
 		
 		out_cnt.append("[");
 		for (SRPort out : outputs) {
-			out_cnt.append("[" + "\"" + out.GetName() + "\"" + "," + "\"" + out.GetInterfaceDataElement().ToScript() + "\"," + "\"0\"" + "],");
+			String srport_type = "Unknown";
+			if (out.GetInterfaceDataElement() != null) {
+				srport_type = out.GetInterfaceDataElement().ToScript();
+			}
+			out_cnt.append("[" + "\"" + out.GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "],");
 		}
 		if (outputs.size() > 0) {
 			out_cnt.deleteCharAt(out_cnt.length()-1);
@@ -119,8 +110,8 @@ public class SwCompo extends ArElement {
 			res.append(p.ToScript());
 		}
 		
-		for (RunEnt re : runs) {
-			res.append(re.ToScript());
+		for (SwcBehaviour swcb : swc_bs) {
+			res.append(swcb.ToScript());
 		}
 		
 		for (SwCompo swc : swcs) {
@@ -132,17 +123,40 @@ public class SwCompo extends ArElement {
 
 	@Override
 	public Object ArClone() {
-		Assert.isTrue(false, "Not implemented yet!");
-		return null;
+		SwCompo sc = new SwCompo(name);
+		sc.SetProto(is_proto);
+		sc.SetReferred(is_referred);
+		for (CSPort p : cs_ports) {
+			CSPort c_ele = (CSPort) p.ArClone();
+			sc.AddCSPort(c_ele);
+			sc.AddChildElement(c_ele);
+		}
+		for (SRPort p : ports) {
+			SRPort c_ele = (SRPort) p.ArClone();
+			sc.AddSRPort(c_ele);
+			sc.AddChildElement(c_ele);
+		}
+		for (SwCompo o_sc : swcs) {
+			SwCompo c_ele = (SwCompo) o_sc.ArClone();
+			sc.AddSwCompo(c_ele);
+			sc.AddChildElement(c_ele);
+		}
+		for (SwcBehaviour o_swc_b : swc_bs) {
+			SwcBehaviour c_ele = (SwcBehaviour) o_swc_b.ArClone();
+			sc.AddSwcBehaviour(c_ele);
+			sc.AddChildElement(c_ele);
+		}
+		return sc;
 	}
 	
 	public SRPort FindPort(String name) {
+		Assert.isTrue(name != null);
 		for (SRPort p : ports) {
 			if (p.GetName().equals(name)) {
 				return p;
 			}
 		}
-		Assert.isTrue(false);
+		Assert.isTrue(false, "unfound port:" + name + "#swc is proto:" + is_proto);
 		return null;
 	}
 
@@ -158,26 +172,28 @@ public class SwCompo extends ArElement {
 	}
 	
 	public void AddSwComponentProto(SwCompo copied_ar_ref_swc) {
-		copied_ar_ref_swc.SetProto();
+		Assert.isTrue(copied_ar_ref_swc != null);
+		Assert.isTrue(copied_ar_ref_swc != this);
+		copied_ar_ref_swc.SetProto(true);
 		swcs.add(copied_ar_ref_swc);
 		this.AddChildElement(copied_ar_ref_swc);
 	}
 
-	public void CardChildsAccordingToTypes() {
-		for (ArElement ele : eles) {
-			if (ele instanceof CSPort) {
-				cs_ports.add((CSPort) ele);
-			}
-			if (ele instanceof SRPort) {
-				ports.add((SRPort) ele);
-			}
-			if (ele instanceof RunEnt) {
-				runs.add((RunEnt) ele);
-			}
-			if (ele instanceof SwCompo) {
-				swcs.add((SwCompo) ele);
-			}
-		}
-	}
+//	public void CardChildsAccordingToTypes() {
+//		for (ArElement ele : eles) {
+//			if (ele instanceof CSPort) {
+//				cs_ports.add((CSPort) ele);
+//			}
+//			if (ele instanceof SRPort) {
+//				ports.add((SRPort) ele);
+//			}
+//			if (ele instanceof SwcBehaviour) {
+//				swc_bs.add((SwcBehaviour) ele);
+//			}
+//			if (ele instanceof SwCompo) {
+//				swcs.add((SwCompo) ele);
+//			}
+//		}
+//	}
 	
 }

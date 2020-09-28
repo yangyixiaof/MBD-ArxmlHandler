@@ -13,7 +13,7 @@ public class ArCloneUtil {
 			ArElement cl_ele = (ArElement) ele.ArClone();
 			cl_root.AddChildElement(cl_ele);
 		}
-		return null;
+		return cl_root;
 	}
 	
 }

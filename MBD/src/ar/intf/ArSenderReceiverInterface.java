@@ -28,7 +28,6 @@ public class ArSenderReceiverInterface extends ArElement {
 	
 	public void AddDataElement(ArDataElement de) {
 		this.data_eles.add(de);
-		this.eles.add(de);
 	}
 	
 	public ArrayList<ArDataElement> GetAllDataElements() {

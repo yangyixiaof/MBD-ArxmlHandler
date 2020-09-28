@@ -14,7 +14,6 @@ public class ArCsOperation extends ArElement {
 	
 	public void AddArgument(ArCsArgument arg) {
 		args.add(arg);
-		this.eles.add(arg);
 	}
 	
 	public ArrayList<ArCsArgument> GetAllArguments() {

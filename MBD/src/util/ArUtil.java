@@ -3,28 +3,35 @@ package util;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
+import ar.intf.ArDataElement;
 import ar.swc.SRPort;
 import ar.swc.SwCompo;
 
 public class ArUtil {
 	
-//	public static ArSenderReceiverInterface TraceToTerminal(SRPort ario) {
-//		SRPort curr = ario;
-//		if (ario.IsInput()) {
-//			while (curr.GetSource() != null) {
-//				curr = curr.GetSource();
-//			}
-//		} else {
-//			while (curr.GetTarget() != null) {
-//				curr = curr.GetTarget();
-//			}
-//		}
-//		VarAcc var_acc = curr.GetVarAcc();
-//		if (var_acc != null) {
-//			return var_acc.GetAccInterface();
-//		}
-//		return null;
-//	}
+	public static ArDataElement DiscoverPossibleDataElement(SRPort ario) {
+		SRPort src = ario;
+		SRPort tgt = ario;
+		while (src.GetSource() != null) {
+			src = src.GetSource();
+		}
+		while (tgt.GetTarget() != null) {
+			tgt = tgt.GetTarget();
+		}
+		
+		ArDataElement src_ad = src.GetInterfaceDataElement();
+		ArDataElement tgt_ad = tgt.GetInterfaceDataElement();
+		Assert.isTrue(!(src_ad != null && tgt_ad != null));
+		
+		ArDataElement f_ad = null;
+		if (src_ad != null) {
+			f_ad = src_ad;
+		}
+		if (tgt_ad != null) {
+			f_ad = tgt_ad;
+		}
+		return f_ad;
+	}
 	
 	public static SRPort GetSRPortFromCompoInstRef(InfoManager im, Object p_prov, Object c_prov) {
 		String source_c = StringHelper.GetProxyValidPath(c_prov.toString());

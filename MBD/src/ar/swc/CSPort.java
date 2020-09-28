@@ -93,4 +93,12 @@ public class CSPort extends ArElement {
 		return super.ToScript();
 	}
 	
+	@Override
+	public Object ArClone() {
+//		Assert.isTrue(false, "Not implemented yet!");
+		CSPort csp = new CSPort(name, is_read);
+		csp.SetCSOperation(cs_op);
+		return csp;
+	}
+	
 }

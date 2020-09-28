@@ -13,6 +13,7 @@ public class ArElement implements ArCloneable, ArProperty {
 	protected ArrayList<ArElement> eles = new ArrayList<ArElement>();
 	
 	public ArElement(String name) {
+		Assert.isTrue(name != null);
 		this.name = name;
 	}
 	
@@ -67,8 +68,10 @@ public class ArElement implements ArCloneable, ArProperty {
 
 	@Override
 	public Object ArClone() {
-		ArElement ae = new ArElement(name);
-		return ae;
+		Assert.isTrue(false, "Class " + getClass() + " cannot be cloned.");
+		return null;
+//		ArElement ae = new ArElement(name);
+//		return ae;
 	}
 	
 }

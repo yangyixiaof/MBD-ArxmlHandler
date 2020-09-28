@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.eclipse.core.runtime.Assert;
@@ -71,6 +72,8 @@ public class InfoManager {
 	ArrayList<ArElement> roots = new ArrayList<ArElement>();
 	TreeMap<String, ArElement> path_map = new TreeMap<String, ArElement>();
 	
+	Map<SwCompo, ArrayList<SwCompo>> swc_depend = new HashMap<SwCompo, ArrayList<SwCompo>>();
+	
 	/**
 	 * first phase, basic construction. 
 	 * @param resource
@@ -79,12 +82,13 @@ public class InfoManager {
 		try {
 			EList<EObject> acs = resource.getContents();
 			for (EObject ac : acs) {
-				VisitEObject(ac, "BasicElementBuildPre", "BasicElementBuildPost");
+				VisitEObject(ac, "BasicElementBuildPre", null);// "BasicElementBuildPost"
 				GenerateAllPathsForAllElements();
 				VisitEObject(ac, "BasicLinkBuildPre", null);
 				VisitEObject(ac, "SwComponentPrototypeBuildPre", null);
 				GenerateAllPathsForAllElements();
 				VisitEObject(ac, "SwcConnectorBuildPre", null);
+				IdentifyAllTypesForAllSRPorts();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -195,8 +199,19 @@ public class InfoManager {
 //				System.out.println("port class:" + root.getClass());
 				PortPrototype pp = (PortPrototype) root;
 				ae = HandlePortPrototype(pp);
+				if (ae instanceof SRPort) {
+					SwCompo sc = (SwCompo) eobject_map.get(root.eContainer());
+					sc.AddSRPort((SRPort) ae);
+				} else if (ae instanceof CSPort) {
+					SwCompo sc = (SwCompo) eobject_map.get(root.eContainer());
+					sc.AddCSPort((CSPort) ae);
+				} else {
+					Assert.isTrue(false);
+				}
 			} else if (root instanceof SwcInternalBehavior) {
 				ae = new SwcBehaviour(name);
+				SwCompo sc = (SwCompo) eobject_map.get(root.eContainer());
+				sc.AddSwcBehaviour((SwcBehaviour) ae);
 			} else if (root instanceof InitEvent) {
 				return false;
 			} else if (root instanceof TimingEvent) {
@@ -204,6 +219,9 @@ public class InfoManager {
 			} else if (root instanceof RunnableEntity) {
 				RunnableEntity rei = (RunnableEntity) root;
 				ae = new RunEnt(rei.gGetShortName());
+				SwcInternalBehavior sri = (SwcInternalBehavior) root.eContainer();
+				SwcBehaviour swc_b = (SwcBehaviour) eobject_map.get(sri);
+				swc_b.AddRunnableEntity((RunEnt) ae);
 			} else if (root instanceof SwConnector) {
 				return false;
 			} else if (root instanceof SwComponentPrototype) {
@@ -230,14 +248,14 @@ public class InfoManager {
 		return true;
 	}
 	
-	public void BasicElementBuildPost(EObject root) {
-		ArElement ae = eobject_map.get(root);
-		if (ae != null) {
-			if (ae instanceof SwComponentType) {
-				((SwCompo) ae).CardChildsAccordingToTypes();
-			}
-		}
-	}
+//	public void BasicElementBuildPost(EObject root) {
+//		ArElement ae = eobject_map.get(root);
+//		if (ae != null) {
+//			if (ae instanceof SwComponentType) {
+//				((SwCompo) ae).CardChildsAccordingToTypes();
+//			}
+//		}
+//	}
 	
 //	public String GetFullPath(EObject eo) {
 //		Assert.isTrue(info.containsKey(eo));
@@ -353,16 +371,21 @@ public class InfoManager {
 			// do nothing.
 		} else if (root instanceof SwComponentPrototype) {
 			SwComponentPrototype scpi = (SwComponentPrototype) root;
-			ArElement ar_ele = eobject_map.get(scpi);
-			ArElement par_ele = ar_ele.GetParent();
-			SwCompo par_swc = (SwCompo) par_ele;
+//			ArElement ar_ele = eobject_map.get(scpi);
+//			ArElement par_ele = ar_ele.GetParent();
+//			SwCompo par_swc = (SwCompo) par_ele;
+			SwCompo par_swc = (SwCompo) eobject_map.get(root.eContainer());
 			SwComponentType swc_tp = scpi.getType();
+			Assert.isTrue(swc_tp.eIsProxy());
 			String swc_name = scpi.getShortName();
 			String ref_swc_path = StringHelper.GetProxyValidPath(swc_tp.toString());
 			SwCompo ar_ref_swc = (SwCompo) path_map.get(ref_swc_path);
 //			SwCompo ar_ref_swc = am.GetSwCompo(ref_swc_path);
-			ar_ref_swc.SetReferred();
-			par_swc.AddDependency(ar_ref_swc);
+			ar_ref_swc.SetReferred(true);
+			if (!swc_depend.containsKey(par_swc)) {
+				swc_depend.put(par_swc, new ArrayList<SwCompo>());
+			}
+			swc_depend.get(par_swc).add(ar_ref_swc);
 			SwCompo copied_ar_ref_swc = (SwCompo) ArCloneUtil.CopyTreeWithRoot(ar_ref_swc);
 			copied_ar_ref_swc.SetName(swc_name);
 			par_swc.AddSwComponentProto(copied_ar_ref_swc);
@@ -485,7 +508,7 @@ public class InfoManager {
 			int ini_len = ini.size();
 			for (int i=0;i<ini_len;i++) {
 				SwCompo sc = ini.get(i);
-				if (sc.SatisfyDependencies(result)) {
+				if (SatisfyDependencies(sc, result)) {
 					result.add(sc);
 					ini.remove(sc);
 					break;
@@ -503,7 +526,7 @@ public class InfoManager {
 		String result = "";
 		ArrayList<ArSenderReceiverInterface> intfs = GetAllInterfaces();
 		if (intfs.size() > 0) {
-			result += "AddModelPage(\"StructPage\",\"StructModelPage\")";
+			result += "AddModelPage(\"StructPage\",\"StructModelPage\");";
 		}
 		for (ArSenderReceiverInterface intf : intfs) {
 			result += intf.ToScript();
@@ -521,7 +544,7 @@ public class InfoManager {
 	/**
 	 * utility functions, generate all paths for all elements. 
 	 */
-	public void GenerateAllPathsForAllElements() {
+	private void GenerateAllPathsForAllElements() {
 		for (ArElement root : roots) {
 			GeneratePathForElement(root);
 		}
@@ -535,6 +558,26 @@ public class InfoManager {
 		ArrayList<ArElement> childs = root.GetAllChildElements();
 		for (ArElement child : childs) {
 			GeneratePathForElement(child);
+		}
+	}
+	
+	private void IdentifyAllTypesForAllSRPorts() {
+		for (ArElement root : roots) {
+			IdentifyAllTypesForSRPort(root);
+		}
+	}
+	
+	private void IdentifyAllTypesForSRPort(ArElement root) {
+		if (root instanceof SRPort) {
+			SRPort srp = (SRPort) root;
+			ArDataElement ade = ArUtil.DiscoverPossibleDataElement(srp);
+			if (srp.GetInterfaceDataElement() == null) {
+				srp.SetInterfaceDataElement(ade);
+			}
+		}
+		ArrayList<ArElement> childs = root.GetAllChildElements();
+		for (ArElement child : childs) {
+			IdentifyAllTypesForSRPort(child);
 		}
 	}
 
@@ -638,6 +681,7 @@ public class InfoManager {
 				Assert.isTrue(cso.eIsProxy());
 				String aco_path = StringHelper.GetProxyValidPath(cso.toString());
 				ArCsOperation aco = (ArCsOperation) path_map.get(aco_path);
+				Assert.isTrue(aco != null);
 //				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
 				CSPort csp = (CSPort) eobject_map.get(pp);
 				csp.SetCSOperation(aco);
@@ -647,6 +691,7 @@ public class InfoManager {
 				Assert.isTrue(de.eIsProxy());
 				String aco_path = StringHelper.GetProxyValidPath(de.toString());
 				ArDataElement ade = (ArDataElement) path_map.get(aco_path);
+				Assert.isTrue(ade != null);
 //				ArDataElement ade = (ArDataElement) eobject_map.get(de);
 				SRPort srp = (SRPort) eobject_map.get(pp);
 				srp.SetInterfaceDataElement(ade);
@@ -659,6 +704,7 @@ public class InfoManager {
 				Assert.isTrue(cso.eIsProxy());
 				String aco_path = StringHelper.GetProxyValidPath(cso.toString());
 				ArCsOperation aco = (ArCsOperation) path_map.get(aco_path);
+				Assert.isTrue(aco != null);
 //				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
 				CSPort csp = (CSPort) eobject_map.get(pp);
 				csp.SetCSOperation(aco);
@@ -668,11 +714,24 @@ public class InfoManager {
 				Assert.isTrue(de.eIsProxy());
 				String aco_path = StringHelper.GetProxyValidPath(de.toString());
 				ArDataElement ade = (ArDataElement) path_map.get(aco_path);
+				Assert.isTrue(ade != null);
 //				ArDataElement ade = (ArDataElement) eobject_map.get(de);
 				SRPort srp = (SRPort) eobject_map.get(pp);
 				srp.SetInterfaceDataElement(ade);
 			}
 		}
+	}
+	
+	private boolean SatisfyDependencies(SwCompo sc, ArrayList<SwCompo> result) {
+		ArrayList<SwCompo> deps = swc_depend.get(sc);
+		if (deps != null) {
+			for (SwCompo dep : deps) {
+				if (!result.contains(dep)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 	
 }
