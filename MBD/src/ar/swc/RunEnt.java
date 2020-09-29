@@ -1,5 +1,7 @@
 package ar.swc;
 
+import org.eclipse.core.runtime.Assert;
+
 import ar.ArElement;
 
 public class RunEnt extends ArElement {
@@ -28,7 +30,9 @@ public class RunEnt extends ArElement {
 	@Override
 	public String ToScript() {
 		StringBuilder res = new StringBuilder("");
-		res.append("AddModelPage(\"" + GetGeneratedPath() + "\",\"ProgramModelPage\");");
+		String full_path = GetGeneratedPath();
+		Assert.isTrue(full_path != null);
+		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\");");
 		// TODO handle variable access which needs to handle Function head and tail (return). 
 		return res.toString();
 	}

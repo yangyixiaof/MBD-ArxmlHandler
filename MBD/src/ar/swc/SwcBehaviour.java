@@ -13,7 +13,6 @@ public class SwcBehaviour extends ArElement {
 	}
 	
 	public void AddRunnableEntity(RunEnt rei) {
-		rei.SetParent(this);
 		runs.add(rei);
 	}
 	
@@ -21,7 +20,9 @@ public class SwcBehaviour extends ArElement {
 	public Object ArClone() {
 		SwcBehaviour swc_b = new SwcBehaviour(name);
 		for (RunEnt r : runs) {
-			swc_b.AddRunnableEntity((RunEnt) r.ArClone());
+			RunEnt c_ele = (RunEnt) r.ArClone();
+			swc_b.AddRunnableEntity(c_ele);
+			swc_b.AddChildElement(c_ele);
 		}
 		return swc_b;
 	}
