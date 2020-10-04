@@ -23,6 +23,7 @@ import ar.swc.RunEnt;
 import ar.swc.SRPort;
 import ar.swc.SwCompo;
 import ar.swc.SwcBehaviour;
+import ar.swc.VarAcc;
 import ar.type.ArBaseDataType;
 import ar.type.ArDataType;
 import ar.util.ArCloneUtil;
@@ -53,6 +54,7 @@ import autosar40.swcomponent.composition.instancerefs.PPortInCompositionInstance
 import autosar40.swcomponent.composition.instancerefs.PortInCompositionTypeInstanceRef;
 import autosar40.swcomponent.composition.instancerefs.RPortInCompositionInstanceRef;
 import autosar40.swcomponent.datatype.dataprototypes.AutosarDataPrototype;
+import autosar40.swcomponent.datatype.dataprototypes.DataPrototype;
 import autosar40.swcomponent.datatype.dataprototypes.VariableDataPrototype;
 import autosar40.swcomponent.datatype.datatypes.AutosarDataType;
 import autosar40.swcomponent.portinterface.ArgumentDataPrototype;
@@ -62,6 +64,9 @@ import autosar40.swcomponent.portinterface.PortInterface;
 import autosar40.swcomponent.portinterface.SenderReceiverInterface;
 import autosar40.swcomponent.swcinternalbehavior.RunnableEntity;
 import autosar40.swcomponent.swcinternalbehavior.SwcInternalBehavior;
+import autosar40.swcomponent.swcinternalbehavior.dataelements.AutosarVariableRef;
+import autosar40.swcomponent.swcinternalbehavior.dataelements.VariableAccess;
+import autosar40.swcomponent.swcinternalbehavior.dataelements.instancerefsusage.VariableInAtomicSWCTypeInstanceRef;
 import autosar40.swcomponent.swcinternalbehavior.rteevents.InitEvent;
 import autosar40.swcomponent.swcinternalbehavior.rteevents.TimingEvent;
 import autosar40.util.Autosar40ResourceImpl;
@@ -336,7 +341,22 @@ public class InfoManager {
 		} else if (root instanceof TimingEvent) {
 			// not handle
 		} else if (root instanceof RunnableEntity) {
-			// not handle
+			RunnableEntity rei = (RunnableEntity) root;
+			RunEnt ar_ele = (RunEnt) eobject_map.get(rei);
+			
+			EList<VariableAccess> reads = rei.getDataReadAccess();
+			ArrayList<VarAcc> r_vas = HandleVariableAccess(reads, true);
+			ar_ele.AddReadVarAccesses(r_vas);
+			for (VarAcc r_va : r_vas) {
+				ar_ele.AddChildElement(r_va);
+			}
+			
+			EList<VariableAccess> writes = rei.getDataWriteAccess();
+			ArrayList<VarAcc> w_vas = HandleVariableAccess(writes, false);
+			ar_ele.AddWriteVarAccesses(w_vas);
+			for (VarAcc w_va : w_vas) {
+				ar_ele.AddChildElement(w_va);
+			}
 		} else if (root instanceof SwConnector) {
 			// do nothing.
 		} else if (root instanceof SwComponentPrototype) {
@@ -732,6 +752,66 @@ public class InfoManager {
 			}
 		}
 		return true;
+	}
+	
+	protected ArrayList<VarAcc> HandleVariableAccess(EList<VariableAccess> rvas, boolean is_read) {
+		ArrayList<VarAcc> res = new ArrayList<VarAcc>();
+		for (VariableAccess va : rvas) {
+//			System.out.println("read-va:" + va);
+			EList<EObject> vas = va.eContents();
+			for (EObject r_va : vas) {
+//				System.out.println("rva:" + r_va);
+				if (r_va instanceof AutosarVariableRef) {
+					AutosarVariableRef avri = (AutosarVariableRef) r_va;
+					EList<EObject> acnts = avri.eContents();
+					for (EObject acnt : acnts) {
+//						System.out.println("acnt:" + acnt);
+						if (acnt instanceof VariableInAtomicSWCTypeInstanceRef) {
+							VariableInAtomicSWCTypeInstanceRef viatiri = (VariableInAtomicSWCTypeInstanceRef) acnt;
+							DataPrototype target_data = viatiri.getTargetDataPrototype();
+							PortPrototype port_proto = viatiri.getPortPrototype();
+							
+							String tds = target_data.toString();
+							String pps = port_proto.toString();
+							String accessed_var_prop = StringHelper.GetProxyValidPath(tds);
+							String port_full_name = StringHelper.GetProxyValidPath(pps);
+//							Assert.isTrue(accessed_var_prop.startsWith(port_full_name), "accessed_var_prop:" + accessed_var_prop + "#port_full_name:" + port_full_name);
+							String port_prop = StringHelper.LastPartInPath(accessed_var_prop);
+							
+							String swc_path = StringHelper.NonLastPartInPath(port_full_name);
+							SwCompo c_swc = (SwCompo) path_map.get(swc_path);
+							Assert.isTrue(c_swc != null);
+							SwComponentType eo_swc = (SwComponentType) viatiri.eContainer().eContainer().eContainer().eContainer().eContainer();
+							SwCompo ceo_swc = (SwCompo) eobject_map.get(eo_swc);
+							Assert.isTrue(ceo_swc != null);
+							Assert.isTrue(c_swc == ceo_swc);
+							
+							SRPort pp = (SRPort) path_map.get(port_full_name);
+							Assert.isTrue(pp != null);
+							ArDataElement vp = (ArDataElement) path_map.get(accessed_var_prop);
+							Assert.isTrue(vp != null);
+							String va_name = "var_acc_" + System.currentTimeMillis() + "_" + Math.random();
+							VarAcc v_acc = new VarAcc(va_name, is_read, port_prop, vp);
+//							pp.SetVarAcc(v_acc);
+							res.add(v_acc);
+							
+//							System.out.println("target_data:" + target_data + "#is_proxy:" + target_data.eIsProxy() + "#short_name:" + target_data.getShortName() + "#uuid:" + target_data.getUuid() + "#category:" + target_data.getCategory());
+//							System.out.println("port_proto:" + port_proto + "#is_proxy:" + port_proto.eIsProxy() + "#short_name:" + port_proto.getShortName() + "#uuid:" + port_proto.getUuid());
+							
+//							EList<EObject> vias = viatiri.eContents();
+//							for (EObject via : vias) {
+//								System.out.println("via:" + via);
+//							}
+						}
+					}
+//						 VariableInAtomicSWCTypeInstanceRef av = avri.getAutosarVariable();
+//						 ArVariableInImplementationDataInstanceRef aviid = avri.getAutosarVariableInImplDatatype();
+//						 System.out.println("av:" + av);
+//						 System.out.println("aviid:" + aviid);
+				}
+			}
+		}
+		return res;
 	}
 	
 }

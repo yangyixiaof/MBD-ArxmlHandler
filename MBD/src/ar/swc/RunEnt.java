@@ -1,30 +1,43 @@
 package ar.swc;
 
+import java.util.ArrayList;
+
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
 
 public class RunEnt extends ArElement {
 	
-//	ArrayList<VarAcc> read_vas = new ArrayList<VarAcc>();
-//	ArrayList<VarAcc> write_vas = new ArrayList<VarAcc>();
+	ArrayList<VarAcc> read_vas = new ArrayList<VarAcc>();
+	ArrayList<VarAcc> write_vas = new ArrayList<VarAcc>();
 	
 	public RunEnt(String name) {// , SwCompo sc
 		super(name);
 //		this.sc = sc;
 	}
 	
-//	public void AddReadVarAccesses(ArrayList<VarAcc> rd_vas) {
-//		read_vas.addAll(rd_vas);
-//	}
-//	
-//	public void AddWriteVarAccesses(ArrayList<VarAcc> wt_vas) {
-//		write_vas.addAll(wt_vas);
-//	}
+	public void AddReadVarAccesses(ArrayList<VarAcc> rd_vas) {
+		read_vas.addAll(rd_vas);
+	}
+	
+	public void AddWriteVarAccesses(ArrayList<VarAcc> wt_vas) {
+		write_vas.addAll(wt_vas);
+	}
 
 	@Override
 	public Object ArClone() {
-		return new RunEnt(name);
+		RunEnt re = new RunEnt(name);
+		for (VarAcc r_va : read_vas) {
+			VarAcc c_ele = (VarAcc) r_va.ArClone();
+			re.read_vas.add(c_ele);
+			re.AddChildElement(c_ele);
+		}
+		for (VarAcc w_va : write_vas) {
+			VarAcc c_ele = (VarAcc) w_va.ArClone();
+			re.write_vas.add(c_ele);
+			re.AddChildElement(c_ele);
+		}
+		return re;
 	}
 	
 	@Override
