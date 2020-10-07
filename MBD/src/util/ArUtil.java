@@ -3,13 +3,13 @@ package util;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
-import ar.intf.ArDataElement;
+import ar.intf.ArSRInterfaceWithDataElementProperty;
 import ar.swc.SRPort;
 import ar.swc.SwCompo;
 
 public class ArUtil {
 	
-	public static ArDataElement DiscoverPossibleDataElement(SRPort ario) {
+	public static ArSRInterfaceWithDataElementProperty DiscoverPossibleArSRInterfaceWithPartDataElements(SRPort ario) {
 		SRPort src = ario;
 		SRPort tgt = ario;
 		while (src.GetSource() != null) {
@@ -19,11 +19,11 @@ public class ArUtil {
 			tgt = tgt.GetTarget();
 		}
 		
-		ArDataElement src_ad = src.GetInterfaceDataElement();
-		ArDataElement tgt_ad = tgt.GetInterfaceDataElement();
+		ArSRInterfaceWithDataElementProperty src_ad = src.GetArSRInterfaceWithPartDataElements();
+		ArSRInterfaceWithDataElementProperty tgt_ad = tgt.GetArSRInterfaceWithPartDataElements();
 		Assert.isTrue(!(src_ad != null && tgt_ad != null));
 		
-		ArDataElement f_ad = null;
+		ArSRInterfaceWithDataElementProperty f_ad = null;
 		if (src_ad != null) {
 			f_ad = src_ad;
 		}

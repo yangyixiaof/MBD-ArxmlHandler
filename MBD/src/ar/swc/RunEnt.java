@@ -1,6 +1,9 @@
 package ar.swc;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.Assert;
 
@@ -8,33 +11,46 @@ import ar.ArElement;
 
 public class RunEnt extends ArElement {
 	
-	ArrayList<VarAcc> read_vas = new ArrayList<VarAcc>();
-	ArrayList<VarAcc> write_vas = new ArrayList<VarAcc>();
+	Map<String, VarAcc> read_vas = new HashMap<String, VarAcc>();
+	Map<String, VarAcc> write_vas = new HashMap<String, VarAcc>();
 	
 	public RunEnt(String name) {// , SwCompo sc
 		super(name);
 //		this.sc = sc;
 	}
 	
-	public void AddReadVarAccesses(ArrayList<VarAcc> rd_vas) {
-		read_vas.addAll(rd_vas);
+	public void PutAllReadVarAccesses(Map<String, VarAcc> rd_vas) {
+//		AddVarAccesses(rd_vas, read_vas);
+		read_vas.putAll(rd_vas);
 	}
 	
-	public void AddWriteVarAccesses(ArrayList<VarAcc> wt_vas) {
-		write_vas.addAll(wt_vas);
+	public void PutAllWriteVarAccesses(Map<String, VarAcc> wt_vas) {
+//		AddVarAccesses(wt_vas, write_vas);
+		write_vas.putAll(wt_vas);
 	}
+	
+//	private void AddVarAccesses(ArrayList<VarAcc> t_vas, Map<String, VarAcc> map_vas) {
+//		for (VarAcc t_va : t_vas) {
+//			map_vas.put(t_va.GetRelativePortName(), t_va);
+//		}
+//	}
 
 	@Override
 	public Object ArClone() {
 		RunEnt re = new RunEnt(name);
-		for (VarAcc r_va : read_vas) {
+		Set<String> rv_keys = read_vas.keySet();
+		for (String rv_k : rv_keys) {
+			VarAcc r_va = read_vas.get(rv_k);
 			VarAcc c_ele = (VarAcc) r_va.ArClone();
-			re.read_vas.add(c_ele);
+			re.read_vas.put(rv_k, c_ele);
 			re.AddChildElement(c_ele);
 		}
-		for (VarAcc w_va : write_vas) {
+		
+		Set<String> wv_keys = write_vas.keySet();
+		for (String wv_k : wv_keys) {
+			VarAcc w_va = write_vas.get(wv_k);
 			VarAcc c_ele = (VarAcc) w_va.ArClone();
-			re.write_vas.add(c_ele);
+			re.write_vas.put(wv_k, c_ele);
 			re.AddChildElement(c_ele);
 		}
 		return re;
@@ -46,7 +62,15 @@ public class RunEnt extends ArElement {
 		String full_path = GetGeneratedPath();
 		Assert.isTrue(full_path != null);
 		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\");");
-		// TODO handle variable access which needs to handle Function head and tail (return). 
+		
+		Collection<VarAcc> rvs = read_vas.values();
+		for (VarAcc rv : rvs) {
+			res.append(rv.ToScript());
+		}
+		Collection<VarAcc> wvs = write_vas.values();
+		for (VarAcc wv : wvs) {
+			res.append(wv.ToScript());
+		}
 		return res.toString();
 	}
 	

@@ -14,10 +14,14 @@ import org.eclipse.emf.ecore.EObject;
 
 import ar.ArElement;
 import ar.intf.ArDataElement;
+import ar.intf.ArDataElementProperty;
+import ar.intf.ArSRInterfaceWithDataElementProperty;
 import ar.intf.ArSenderReceiverInterface;
 import ar.intf.cs.ArClientServerInterface;
 import ar.intf.cs.ArCsArgument;
+import ar.intf.cs.ArCsInterfaceWithOperationProperty;
 import ar.intf.cs.ArCsOperation;
+import ar.intf.cs.ArCsOperationProperty;
 import ar.swc.CSPort;
 import ar.swc.RunEnt;
 import ar.swc.SRPort;
@@ -345,16 +349,17 @@ public class InfoManager {
 			RunEnt ar_ele = (RunEnt) eobject_map.get(rei);
 			
 			EList<VariableAccess> reads = rei.getDataReadAccess();
-			ArrayList<VarAcc> r_vas = HandleVariableAccess(reads, true);
-			ar_ele.AddReadVarAccesses(r_vas);
-			for (VarAcc r_va : r_vas) {
+			Map<String, VarAcc> r_vas = HandleVariableAccess(reads, true);
+			ar_ele.PutAllReadVarAccesses(r_vas);
+			for (VarAcc r_va : r_vas.values()) {
 				ar_ele.AddChildElement(r_va);
 			}
 			
 			EList<VariableAccess> writes = rei.getDataWriteAccess();
-			ArrayList<VarAcc> w_vas = HandleVariableAccess(writes, false);
-			ar_ele.AddWriteVarAccesses(w_vas);
-			for (VarAcc w_va : w_vas) {
+			
+			Map<String, VarAcc> w_vas = HandleVariableAccess(writes, false);
+			ar_ele.PutAllWriteVarAccesses(w_vas);
+			for (VarAcc w_va : w_vas.values()) {
 				ar_ele.AddChildElement(w_va);
 			}
 		} else if (root instanceof SwConnector) {
@@ -590,9 +595,9 @@ public class InfoManager {
 	private void IdentifyAllTypesForSRPort(ArElement root) {
 		if (root instanceof SRPort) {
 			SRPort srp = (SRPort) root;
-			ArDataElement ade = ArUtil.DiscoverPossibleDataElement(srp);
-			if (srp.GetInterfaceDataElement() == null) {
-				srp.SetInterfaceDataElement(ade);
+			ArSRInterfaceWithDataElementProperty ade = ArUtil.DiscoverPossibleArSRInterfaceWithPartDataElements(srp);
+			if (srp.GetArSRInterfaceWithPartDataElements() == null) {
+				srp.SetArSRInterfaceWithDataElementProperty(ade);
 			}
 		}
 		ArrayList<ArElement> childs = root.GetAllChildElements();
@@ -678,21 +683,39 @@ public class InfoManager {
 	}
 	
 	public void HandlePortPrototypeLink(PortPrototype pp) {
+		ArSRInterfaceWithDataElementProperty asriwpde = null;
+		ArCsInterfaceWithOperationProperty acsiwop = null;
+		
 		EList<PPortComSpec> css_l = null;
 		EList<RPortComSpec> rcs_l = null;
+		PortInterface intf_ref = null;
 		if (pp instanceof PPortPrototype) {
 			PPortPrototype ppp = (PPortPrototype) pp;
 			css_l = ppp.getProvidedComSpecs();
-			
+			intf_ref = ppp.getProvidedInterface();
 		} else if (pp instanceof RPortPrototype) {
 			RPortPrototype rpp = (RPortPrototype) pp;
 			rcs_l = rpp.getRequiredComSpecs();
-			
+			intf_ref = rpp.getRequiredInterface();
 		} else if (pp instanceof PRPortPrototype) {
 			PRPortPrototype prpp = (PRPortPrototype) pp;
 			css_l = prpp.getProvidedComSpecs();
 			rcs_l = prpp.getRequiredComSpecs();
+			intf_ref = prpp.getProvidedRequiredInterface();
 		}
+		
+		Assert.isTrue(intf_ref != null && intf_ref.eIsProxy());
+		String p_path = StringHelper.GetProxyValidPath(intf_ref.toString());
+		if (intf_ref instanceof SenderReceiverInterface) {
+			ArSenderReceiverInterface asri = (ArSenderReceiverInterface) path_map.get(p_path);
+			asriwpde = new ArSRInterfaceWithDataElementProperty();
+			asriwpde.SetArSenderReceiverInterface(asri);
+		} else {
+			ArClientServerInterface acsi = (ArClientServerInterface) path_map.get(p_path);
+			acsiwop = new ArCsInterfaceWithOperationProperty();
+			acsiwop.SetArClientServerInterface(acsi);
+		}
+		
 		// Solved. Please handle var_proto first and then here, var_proto should be extracted as an element. 
 		for (PPortComSpec ppcs : css_l) {
 			if (ppcs instanceof ServerComSpec) {
@@ -702,9 +725,9 @@ public class InfoManager {
 				String aco_path = StringHelper.GetProxyValidPath(cso.toString());
 				ArCsOperation aco = (ArCsOperation) path_map.get(aco_path);
 				Assert.isTrue(aco != null);
-//				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
-				CSPort csp = (CSPort) eobject_map.get(pp);
-				csp.SetCSOperation(aco);
+//				CSPort csp = (CSPort) eobject_map.get(pp);
+//				csp.SetCSOperation(aco);
+				acsiwop.AddArCsOperation(aco, new ArCsOperationProperty());
 			} else if (ppcs instanceof SenderComSpec) {
 				SenderComSpec scs = (SenderComSpec) ppcs;
 				AutosarDataPrototype de = scs.getDataElement();
@@ -712,9 +735,10 @@ public class InfoManager {
 				String aco_path = StringHelper.GetProxyValidPath(de.toString());
 				ArDataElement ade = (ArDataElement) path_map.get(aco_path);
 				Assert.isTrue(ade != null);
-//				ArDataElement ade = (ArDataElement) eobject_map.get(de);
-				SRPort srp = (SRPort) eobject_map.get(pp);
-				srp.SetInterfaceDataElement(ade);
+//				SRPort srp = (SRPort) eobject_map.get(pp);
+//				srp.SetInterfaceDataElement(ade);
+				Assert.isTrue(asriwpde != null);
+				asriwpde.AddProvidedArDataElement(ade, new ArDataElementProperty());
 			}
 		}
 		for (RPortComSpec rpcs : rcs_l) {
@@ -725,9 +749,9 @@ public class InfoManager {
 				String aco_path = StringHelper.GetProxyValidPath(cso.toString());
 				ArCsOperation aco = (ArCsOperation) path_map.get(aco_path);
 				Assert.isTrue(aco != null);
-//				ArCsOperation aco = (ArCsOperation) eobject_map.get(cso);
-				CSPort csp = (CSPort) eobject_map.get(pp);
-				csp.SetCSOperation(aco);
+				acsiwop.AddArCsOperation(aco, new ArCsOperationProperty());
+//				CSPort csp = (CSPort) eobject_map.get(pp);
+//				csp.SetCSOperation(aco);
 			} else if (rpcs instanceof ReceiverComSpec) {
 				ReceiverComSpec rcs = (ReceiverComSpec) rpcs;
 				AutosarDataPrototype de = rcs.getDataElement();
@@ -735,10 +759,22 @@ public class InfoManager {
 				String aco_path = StringHelper.GetProxyValidPath(de.toString());
 				ArDataElement ade = (ArDataElement) path_map.get(aco_path);
 				Assert.isTrue(ade != null);
-//				ArDataElement ade = (ArDataElement) eobject_map.get(de);
-				SRPort srp = (SRPort) eobject_map.get(pp);
-				srp.SetInterfaceDataElement(ade);
+				Assert.isTrue(asriwpde != null);
+				asriwpde.AddRequiredArDataElement(ade, new ArDataElementProperty());
 			}
+		}
+		
+		if (asriwpde != null) {
+			ArElement ae = eobject_map.get(pp);
+			Assert.isTrue(ae instanceof SRPort);
+			SRPort srp = (SRPort) ae;
+			srp.SetArSRInterfaceWithDataElementProperty(asriwpde);
+		} else {
+			Assert.isTrue(acsiwop != null);
+			ArElement ae = eobject_map.get(pp);
+			Assert.isTrue(ae instanceof CSPort);
+			CSPort srp = (CSPort) ae;
+			srp.SetArCsInterfaceWithOperationProperty(acsiwop);
 		}
 	}
 	
@@ -754,8 +790,9 @@ public class InfoManager {
 		return true;
 	}
 	
-	protected ArrayList<VarAcc> HandleVariableAccess(EList<VariableAccess> rvas, boolean is_read) {
-		ArrayList<VarAcc> res = new ArrayList<VarAcc>();
+	protected Map<String, VarAcc> HandleVariableAccess(EList<VariableAccess> rvas, boolean is_read) {
+		Map<String, VarAcc> res = new HashMap<String, VarAcc>();
+		
 		for (VariableAccess va : rvas) {
 //			System.out.println("read-va:" + va);
 			EList<EObject> vas = va.eContents();
@@ -790,10 +827,15 @@ public class InfoManager {
 							Assert.isTrue(pp != null);
 							ArDataElement vp = (ArDataElement) path_map.get(accessed_var_prop);
 							Assert.isTrue(vp != null);
-							String va_name = "var_acc_" + System.currentTimeMillis() + "_" + Math.random();
-							VarAcc v_acc = new VarAcc(va_name, is_read, port_prop, vp);
+							String va_name = "var_acc_" + port_prop;// System.currentTimeMillis() + "_" + Math.random()
+							VarAcc v_acc = res.get(va_name);
+							if (v_acc == null) {
+								v_acc = new VarAcc(va_name, is_read, port_prop);
+								res.put(va_name, v_acc);
+							}
+							v_acc.AddArDataElement(vp);
 //							pp.SetVarAcc(v_acc);
-							res.add(v_acc);
+//							res.add(v_acc);
 							
 //							System.out.println("target_data:" + target_data + "#is_proxy:" + target_data.eIsProxy() + "#short_name:" + target_data.getShortName() + "#uuid:" + target_data.getUuid() + "#category:" + target_data.getCategory());
 //							System.out.println("port_proto:" + port_proto + "#is_proxy:" + port_proto.eIsProxy() + "#short_name:" + port_proto.getShortName() + "#uuid:" + port_proto.getUuid());

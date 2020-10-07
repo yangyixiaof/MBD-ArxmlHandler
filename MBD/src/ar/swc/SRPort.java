@@ -3,14 +3,17 @@ package ar.swc;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
-import ar.intf.ArDataElement;
+import ar.intf.ArSRInterfaceWithDataElementProperty;
 import util.StringHelper;
 
 public class SRPort extends ArElement {
 	
 	boolean is_input = false;
 	
-	ArDataElement a_de = null;
+//	ArrayList<ArDataElement> a_des = new ArrayList<ArDataElement>();
+	
+//	ArSenderReceiverInterface asri = null;
+	ArSRInterfaceWithDataElementProperty asriwpde = null;
 	
 //	VarAcc v_acc = null;
 	
@@ -28,13 +31,21 @@ public class SRPort extends ArElement {
 		this.is_input = is_input;
 	}
 	
-	public void SetInterfaceDataElement(ArDataElement ade) {
-		this.a_de = ade;
+	public void SetArSRInterfaceWithDataElementProperty(ArSRInterfaceWithDataElementProperty asriwpde) {
+		this.asriwpde = asriwpde;
 	}
 	
-	public ArDataElement GetInterfaceDataElement() {
-		return a_de;
+	public ArSRInterfaceWithDataElementProperty GetArSRInterfaceWithPartDataElements() {
+		return asriwpde;
 	}
+	
+//	public void AddAllInterfaceDataElements(ArrayList<ArDataElement> ades) {
+//		this.a_des.addAll(ades);
+//	}
+//	
+//	public ArrayList<ArDataElement> GetAllInterfaceDataElements() {
+//		return a_des;
+//	}
 	
 	private void SetSource(SRPort source) {
 		this.source = source;
@@ -101,7 +112,9 @@ public class SRPort extends ArElement {
 //		Assert.isTrue(a_de != null);
 		
 		SRPort p = new SRPort(name, is_input);
-		p.SetInterfaceDataElement(a_de);
+//		p.SetArSenderReceiverInterface(asri);
+		p.SetArSRInterfaceWithDataElementProperty(asriwpde);
+//		p.AddAllInterfaceDataElements(a_des);
 //		if (v_acc != null) {
 //			p.SetVarAcc((VarAcc) v_acc.ArClone());
 //		}

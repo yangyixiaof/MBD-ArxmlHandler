@@ -1,32 +1,44 @@
 package ar.swc;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import ar.ArElement;
 import ar.intf.cs.ArCsArgument;
+import ar.intf.cs.ArCsInterfaceWithOperationProperty;
 import ar.intf.cs.ArCsOperation;
 
 public class CSPort extends ArElement {
 	
 	boolean is_read = false;
 	
-	ArCsOperation cs_op = null;
+//	ArCsOperation cs_op = null;
+	ArCsInterfaceWithOperationProperty acsiwop = null;
 	
 	public CSPort(String name, boolean is_read) {
 		super(name);
 		this.is_read = is_read;
 	}
 	
-	public void SetCSOperation(ArCsOperation cs_op) {
-		this.cs_op = cs_op;
+	public void SetArCsInterfaceWithOperationProperty(ArCsInterfaceWithOperationProperty acsiwop) {
+		this.acsiwop = acsiwop;
 	}
 	
-	public ArCsOperation GetCsOperation() {
-		return cs_op;
+	public ArCsInterfaceWithOperationProperty GetArCsInterfaceWithOperationProperty() {
+		return acsiwop;
 	}
 	
 	@Override
 	public String ToScript() {
+		StringBuffer res = new StringBuffer();
+		Set<ArCsOperation> cs_ops = acsiwop.GetAllArCsOperationWithProperty().keySet();
+		for (ArCsOperation cs_op : cs_ops) {
+			res.append(ToOneOperationScript(cs_op));
+		}
+		return res.toString();
+	}
+	
+	public String ToOneOperationScript(ArCsOperation cs_op) {
 		ArrayList<ArCsArgument> args = cs_op.GetAllArguments();
 		
 		SwCompo swc = (SwCompo) GetParent();
@@ -90,14 +102,15 @@ public class CSPort extends ArElement {
 			cnt_builder.append("AddFunction(\"" + cs_op.GetParent().GetGeneratedPath() + "\",\"" + cs_op.GetName() + "\"," + in_cnt_builder.toString() + ");");
 			cnt_builder.append("AddReturnValue(\"" + cs_op.GetParent().GetGeneratedPath() + "\",\"" + cs_op.GetName() + "\"," + out_cnt_builder.toString() + ");");
 		}
-		return super.ToScript();
+		return cnt_builder.toString();
 	}
 	
 	@Override
 	public Object ArClone() {
 //		Assert.isTrue(false, "Not implemented yet!");
 		CSPort csp = new CSPort(name, is_read);
-		csp.SetCSOperation(cs_op);
+		csp.SetArCsInterfaceWithOperationProperty(acsiwop);
+//		csp.SetCSOperation(cs_op);
 		return csp;
 	}
 	

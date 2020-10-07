@@ -77,8 +77,8 @@ public class SwCompo extends ArElement {
 		in_cnt.append("[");
 		for (SRPort in : inputs) {
 			String srport_type = "Unknown";
-			if (in.GetInterfaceDataElement() != null) {
-				srport_type = in.GetInterfaceDataElement().ToScript();
+			if (in.GetArSRInterfaceWithPartDataElements() != null) {
+				srport_type = in.GetArSRInterfaceWithPartDataElements().ToTypeString();
 			}
 			in_cnt.append("[" + "\"" + in.GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "],");
 		}
@@ -90,8 +90,8 @@ public class SwCompo extends ArElement {
 		out_cnt.append("[");
 		for (SRPort out : outputs) {
 			String srport_type = "Unknown";
-			if (out.GetInterfaceDataElement() != null) {
-				srport_type = out.GetInterfaceDataElement().ToScript();
+			if (out.GetArSRInterfaceWithPartDataElements() != null) {
+				srport_type = out.GetArSRInterfaceWithPartDataElements().ToTypeString();
 			}
 			out_cnt.append("[" + "\"" + out.GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "],");
 		}
