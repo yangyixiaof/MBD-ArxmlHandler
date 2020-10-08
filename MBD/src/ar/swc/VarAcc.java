@@ -38,11 +38,28 @@ public class VarAcc extends ArElement {
 	
 	@Override
 	public String ToScript() {
-		// TODO
+		StringBuffer res = new StringBuffer();
 		RunEnt re = (RunEnt) GetParent();
 		SwCompo swc = (SwCompo) re.GetParent();
-		
-		return null;
+		for (ArDataElement data_ele : data_eles) {
+			String SrcActorName = is_read ? swc.GetName() + "_head" : GetName();
+			String SrcOutportName = is_read ? relative_port_name : data_ele.GetName();
+			String DstActorName = is_read ? GetName() : swc.GetName() + "_tail";
+			String DstInportName = is_read ? data_ele.GetName() : relative_port_name;
+			res.append("AddRelation(\"" + swc.GetGeneratedPath() + "\",\"" + SrcActorName + "\",\"" + SrcOutportName + "\",\"" + DstActorName + "\",\"" + DstInportName + "\");");
+		}
+		return res.toString();
+	}
+	
+	public String ToRunnablePartPorts() {
+		StringBuffer sb = new StringBuffer();
+		for (ArDataElement data_ele : data_eles) {
+			sb.append("[\"" + data_ele.GetName() + "\",\"" + data_ele.GetDataType().ToScript() + "\"," + "\"0\"],");
+		}
+		if (sb.charAt(sb.length()-1) == ',') {
+			sb.deleteCharAt(sb.length()-1);
+		}
+		return sb.toString();
 	}
 
 	@Override

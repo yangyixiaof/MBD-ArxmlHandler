@@ -93,14 +93,14 @@ public class CSPort extends ArElement {
 		if (!is_read) {
 			call = "FunctionCall";
 		}
-		cnt_builder.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + call + "\",");
+		cnt_builder.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + call + "\",\"" + cs_op.GetName() + "\",");
 		cnt_builder.append(in_cnt_builder.toString());
 		cnt_builder.append(",");
 		cnt_builder.append(out_cnt_builder.toString());
 		cnt_builder.append(");");
 		if (!is_read) {
-			cnt_builder.append("AddFunction(\"" + cs_op.GetParent().GetGeneratedPath() + "\",\"" + cs_op.GetName() + "\"," + in_cnt_builder.toString() + ");");
-			cnt_builder.append("AddReturnValue(\"" + cs_op.GetParent().GetGeneratedPath() + "\",\"" + cs_op.GetName() + "\"," + out_cnt_builder.toString() + ");");
+			cnt_builder.append("AddFunction(\"" + cs_op.GetParent().GetGeneratedPath() + "\",\"" + cs_op.GetName() + "_head" + "\"," + in_cnt_builder.toString() + ");");
+			cnt_builder.append("AddReturnValue(\"" + cs_op.GetParent().GetGeneratedPath() + "\",\"" + cs_op.GetName() + "_tail" + "\"," + out_cnt_builder.toString() + ");");
 		}
 		return cnt_builder.toString();
 	}

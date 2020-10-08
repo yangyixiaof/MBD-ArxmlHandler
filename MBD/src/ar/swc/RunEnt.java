@@ -62,16 +62,38 @@ public class RunEnt extends ArElement {
 		String full_path = GetGeneratedPath();
 		Assert.isTrue(full_path != null);
 		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\");");
-		
+
 		Collection<VarAcc> rvs = read_vas.values();
+		Collection<VarAcc> wvs = write_vas.values();
+		
+		String ins = ToPorts(rvs);
+		String outs = ToPorts(wvs);
+		
+		res.append("AddActor(\"" + full_path + "\",\"" + "FunctionCall" +  "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"runnable\");");
+		
 		for (VarAcc rv : rvs) {
 			res.append(rv.ToScript());
 		}
-		Collection<VarAcc> wvs = write_vas.values();
 		for (VarAcc wv : wvs) {
 			res.append(wv.ToScript());
 		}
 		return res.toString();
+	}
+	
+	private String ToPorts(Collection<VarAcc> vs) {
+		StringBuffer in_pp = new StringBuffer();
+		in_pp.append("[");
+		for (VarAcc rv : vs) {
+			String rpps = rv.ToRunnablePartPorts();
+			if (!rpps.isEmpty()) {
+				in_pp.append(rpps + ",");
+			}
+		}
+		if (in_pp.charAt(in_pp.length()-1) == ',') {
+			in_pp.deleteCharAt(in_pp.length()-1);
+		}
+		in_pp.append("]");
+		return in_pp.toString();
 	}
 	
 //	public void HandleVarAccString(String va_str) {
