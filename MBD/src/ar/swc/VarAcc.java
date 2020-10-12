@@ -40,7 +40,7 @@ public class VarAcc extends ArElement {
 	public String ToScript() {
 		StringBuffer res = new StringBuffer();
 		RunEnt re = (RunEnt) GetParent();
-		SwCompo swc = (SwCompo) re.GetParent();
+		SwCompo swc = (SwCompo) re.GetParent().GetParent();
 		for (ArDataElement data_ele : data_eles) {
 			String SrcActorName = is_read ? swc.GetName() + "_head" : GetName();
 			String SrcOutportName = is_read ? relative_port_name : data_ele.GetName();

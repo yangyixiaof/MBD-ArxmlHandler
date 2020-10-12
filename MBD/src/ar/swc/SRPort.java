@@ -97,10 +97,37 @@ public class SRPort extends ArElement {
 	public String ToRelationScript() {
 		if (target != null) {
 //			String res = "addRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\",\"" + StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\");";
-			String relative_src = StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath());
-			String relative_tgt = StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath());
+			String src_actor = null;
+			String src_port = null;
+			String tgt_actor = null;
+			String tgt_port = null;
+			String relative_src = StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()+"/");
+			if (GetParent() == relation_base) {
+				src_actor = relation_base.GetName() + "_head";
+				src_port = relative_src;
+			} else {
+				Assert.isTrue(StringHelper.CountCharacterInString(relative_src, '/') == 1, "relative_src:" + relative_src);
+				if (StringHelper.CountCharacterInString(relative_src, '/') == 1) {
+					// do nothing.
+				}
+				src_actor = StringHelper.NonLastPartInPath(relative_src);
+				src_port = StringHelper.LastPartInPath(relative_src);
+			}
 			
-			String res = "AddRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.NonLastPartInPath(relative_src) + "\",\"" + StringHelper.LastPartInPath(relative_src) + "\",\"" + StringHelper.NonLastPartInPath(relative_tgt) + "\",\"" + StringHelper.LastPartInPath(relative_tgt) + "\")";
+			String relative_tgt = StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()+"/");
+			if (target.GetParent() == relation_base) {
+				tgt_actor = relation_base.GetName() + "_tail";
+				tgt_port = relative_tgt;
+			} else {
+				Assert.isTrue(StringHelper.CountCharacterInString(relative_tgt, '/') == 1, "relative_src:" + relative_tgt);
+				if (StringHelper.CountCharacterInString(relative_tgt, '/') == 1) {
+					// do nothing.
+				}
+				tgt_actor = StringHelper.NonLastPartInPath(relative_tgt);
+				tgt_port = StringHelper.LastPartInPath(relative_tgt);
+			}
+			
+			String res = "AddRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + src_actor + "\",\"" + src_port + "\",\"" + tgt_actor + "\",\"" + tgt_port + "\")";
 			return res;
 		}
 		return "";

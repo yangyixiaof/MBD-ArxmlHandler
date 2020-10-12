@@ -66,15 +66,20 @@ public class ArSenderReceiverInterface extends ArElement {
 //		}
 //		return (func + "(\"" + gen_path + "\",\"" + ctype + "\");");
 //		Assert.isTrue(false, "Not implemented yet!");
-		String code = "";
+		StringBuilder code = new StringBuilder("");
+		code.append("[");
 		for (ArDataElement ele : data_eles) {
 			Assert.isTrue(ele != null);
 			Assert.isTrue(ele.GetDataType() != null, "strange interface name:" + name);
-			code += ",[";
-			code += "\"" + ele.GetName() + "\"" + "," + "\"" + ele.GetDataType().ToScript() + "\"" + "," + "\"" + "0" + "\"";
-			code += "]";
+			code.append("[");
+			code.append("\"" + ele.GetName() + "\"" + "," + "\"" + ele.GetDataType().ToScript() + "\"" + "," + "\"" + "0" + "\"");
+			code.append("],");
 		}
-		String script = "AddStruct(\"StructPage\",\"" + name + "\"" + code + ");";
+		if (code.charAt(code.length()-1) == ',') {
+			code.deleteCharAt(code.length()-1);
+		}
+		code.append("]");
+		String script = "AddStruct(\"StructPage\",\"" + name + "\"," + code + ",\"srinterface\");";
 		return script;
 	}
 	

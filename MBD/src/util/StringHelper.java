@@ -25,6 +25,17 @@ public class StringHelper {
 		return all.substring(prefix.length());
 	}
 	
+	public static int CountCharacterInString(String string, char c) {
+        int count = 0;
+        //Counts each character except space
+        for(int i = 0; i < string.length(); i++) {
+            if(string.charAt(i) == c)
+                count++;
+        }
+//        System.out.println("Total number of characters in a string: " + count);
+        return count;
+	}
+	
 	public static void main(String[] args) {
 		System.out.println(StringHelper.Trim("a_", "_"));
 	}

@@ -23,8 +23,10 @@ import ar.intf.cs.ArCsInterfaceWithOperationProperty;
 import ar.intf.cs.ArCsOperation;
 import ar.intf.cs.ArCsOperationProperty;
 import ar.swc.CSPort;
+import ar.swc.OperationEvent;
 import ar.swc.RunEnt;
 import ar.swc.SRPort;
+import ar.swc.ServerCall;
 import ar.swc.SwCompo;
 import ar.swc.SwcBehaviour;
 import ar.swc.VarAcc;
@@ -50,6 +52,8 @@ import autosar40.swcomponent.components.PRPortPrototype;
 import autosar40.swcomponent.components.PortPrototype;
 import autosar40.swcomponent.components.RPortPrototype;
 import autosar40.swcomponent.components.SwComponentType;
+import autosar40.swcomponent.components.instancerefs.POperationInAtomicSwcInstanceRef;
+import autosar40.swcomponent.components.instancerefs.ROperationInAtomicSwcInstanceRef;
 import autosar40.swcomponent.composition.AssemblySwConnector;
 import autosar40.swcomponent.composition.DelegationSwConnector;
 import autosar40.swcomponent.composition.SwComponentPrototype;
@@ -72,7 +76,9 @@ import autosar40.swcomponent.swcinternalbehavior.dataelements.AutosarVariableRef
 import autosar40.swcomponent.swcinternalbehavior.dataelements.VariableAccess;
 import autosar40.swcomponent.swcinternalbehavior.dataelements.instancerefsusage.VariableInAtomicSWCTypeInstanceRef;
 import autosar40.swcomponent.swcinternalbehavior.rteevents.InitEvent;
+import autosar40.swcomponent.swcinternalbehavior.rteevents.OperationInvokedEvent;
 import autosar40.swcomponent.swcinternalbehavior.rteevents.TimingEvent;
+import autosar40.swcomponent.swcinternalbehavior.servercall.ServerCallPoint;
 import autosar40.util.Autosar40ResourceImpl;
 
 public class InfoManager {
@@ -231,6 +237,26 @@ public class InfoManager {
 				SwcInternalBehavior sri = (SwcInternalBehavior) root.eContainer();
 				SwcBehaviour swc_b = (SwcBehaviour) eobject_map.get(sri);
 				swc_b.AddRunnableEntity((RunEnt) ae);
+			} else if (root instanceof OperationInvokedEvent) {
+				OperationInvokedEvent oie = (OperationInvokedEvent) root;
+				ae = new OperationEvent(oie.getShortName());
+//				RunnableEntity re_ref = oie.getStartOnEvent();
+//				System.out.println("re_ref_is_proxy:" + re_ref.eIsProxy() + "#cs_op.toString():" + re_ref.toString());
+//				POperationInAtomicSwcInstanceRef oie_op = oie.getOperation();
+//				ClientServerOperation cs_op = oie_op.getTargetProvidedOperation();
+//				System.out.println("cs_op_is_proxy:" + cs_op.eIsProxy() + "#cs_op.toString():" + cs_op.toString());
+			} else if (root instanceof ServerCallPoint) {
+				ServerCallPoint scp = (ServerCallPoint) root;
+				ae = new ServerCall(scp.getShortName());
+				RunnableEntity ar_re = (RunnableEntity) root.eContainer();
+				RunEnt re = (RunEnt) eobject_map.get(ar_re);
+				re.AddServerCall((ServerCall) ae);
+//				ROperationInAtomicSwcInstanceRef scp_op = scp.getOperation();
+//				System.out.println("scp_op_is_proxy:" + scp_op.eIsProxy() + "#scp_op.toString():" + scp_op.toString());
+//				AbstractRequiredPortPrototype crp = scp_op.getContextRPort();
+//				System.out.println("crp_is_proxy:" + crp.eIsProxy() + "#crp.toString():" + crp.toString());
+//				ClientServerOperation trop = scp_op.getTargetRequiredOperation();
+//				System.out.println("trop_is_proxy:" + trop.eIsProxy() + "#trop.toString():" + trop.toString());
 			} else if (root instanceof SwConnector) {
 				return false;
 			} else if (root instanceof SwComponentPrototype) {
@@ -362,6 +388,33 @@ public class InfoManager {
 			for (VarAcc w_va : w_vas.values()) {
 				ar_ele.AddChildElement(w_va);
 			}
+		} else if (root instanceof OperationInvokedEvent) {
+			OperationInvokedEvent oie = (OperationInvokedEvent) root;
+			OperationEvent oe = (OperationEvent) eobject_map.get(oie);
+			RunnableEntity re_ref = oie.getStartOnEvent();
+			String re_path = StringHelper.GetProxyValidPath(re_ref.toString());
+			RunEnt re = (RunEnt) path_map.get(re_path);
+			Assert.isTrue(re_path.equals(re.GetGeneratedPath()));
+			
+//			System.out.println("re_ref_is_proxy:" + re_ref.eIsProxy() + "#re_ref.toString():" + re_ref.toString());
+			POperationInAtomicSwcInstanceRef oie_op = oie.getOperation();
+			ClientServerOperation cs_op = oie_op.getTargetProvidedOperation();
+			String cs_op_path = StringHelper.GetProxyValidPath(cs_op.toString());
+			ArCsOperation aco = (ArCsOperation) path_map.get(cs_op_path);
+			Assert.isTrue(cs_op_path.equals(aco.GetGeneratedPath()));
+			
+			oe.SetRunEnt(re);
+			oe.SetArCsOperation(aco);
+//			System.out.println("cs_op_is_proxy:" + cs_op.eIsProxy() + "#cs_op.toString():" + cs_op.toString());
+		} else if (root instanceof ServerCallPoint) {
+			ServerCallPoint scp = (ServerCallPoint) root;
+			ROperationInAtomicSwcInstanceRef scp_op = scp.getOperation();
+			ClientServerOperation trop = scp_op.getTargetRequiredOperation();
+//			System.out.println("trop_is_proxy:" + trop.eIsProxy() + "#trop.toString():" + trop.toString());
+			String op_path = StringHelper.GetProxyValidPath(trop.toString());
+			ArCsOperation aco = (ArCsOperation) path_map.get(op_path);
+			ServerCall scall = (ServerCall) eobject_map.get(scp);
+			scall.SetArCsOperation(aco);
 		} else if (root instanceof SwConnector) {
 			// do nothing.
 		} else if (root instanceof SwComponentPrototype) {
@@ -551,7 +604,7 @@ public class InfoManager {
 		String result = "";
 		ArrayList<ArSenderReceiverInterface> intfs = GetAllInterfaces();
 		if (intfs.size() > 0) {
-			result += "AddModelPage(\"StructPage\",\"StructModelPage\");";
+			result += "AddModelPage(\"StructPage\",\"StructModelPage\",\"structure\");";
 		}
 		for (ArSenderReceiverInterface intf : intfs) {
 			result += intf.ToScript();
@@ -627,58 +680,67 @@ public class InfoManager {
 	}
 	
 	public ArElement HandlePortPrototype(PortPrototype pp) {
-		EList<PPortComSpec> css = null;
-		EList<RPortComSpec> rcs = null;
+//		EList<PPortComSpec> css = null;
+//		EList<RPortComSpec> rcs = null;
+		PortInterface intf = null;
+//		Boolean is_cs = null;
+		Boolean is_r = null;
+		
 		if (pp instanceof PPortPrototype) {
 			PPortPrototype ppp = (PPortPrototype) pp;
-			css = ppp.getProvidedComSpecs();
-			
+//			css = ppp.getProvidedComSpecs();
+			intf = ppp.getProvidedInterface();
+			is_r = false;
 		} else if (pp instanceof RPortPrototype) {
 			RPortPrototype rpp = (RPortPrototype) pp;
-			rcs = rpp.getRequiredComSpecs();
-			
+//			rcs = rpp.getRequiredComSpecs();
+			intf = rpp.getRequiredInterface();
+			is_r = true;
 		} else if (pp instanceof PRPortPrototype) {
-			PRPortPrototype prpp = (PRPortPrototype) pp;
-			css = prpp.getProvidedComSpecs();
-			rcs = prpp.getRequiredComSpecs();
+			Assert.isTrue(false, "PRPortPrototype is not supported yet!");
+//			PRPortPrototype prpp = (PRPortPrototype) pp;
+//			css = prpp.getProvidedComSpecs();
+//			rcs = prpp.getRequiredComSpecs();
+//			intf = prpp.getProvidedRequiredInterface();
+		}
+		ArElement ae = null;
+		Assert.isTrue(intf != null && intf.eIsProxy() && is_r != null);
+		if (intf instanceof SenderReceiverInterface) {
+			ae = new SRPort(pp.getShortName(), is_r);
+		} else {
+			Assert.isTrue(intf instanceof ClientServerInterface);
+			ae = new CSPort(pp.getShortName(), is_r);
 		}
 		
-		Boolean is_cs = null;
-		Boolean is_r = null;
-		if (css != null) {
-			for (PPortComSpec ppcs : css) {
-				if (ppcs instanceof ServerComSpec) {
-					Assert.isTrue(is_cs == null || is_cs);
-					is_cs = true;
-				} else if (ppcs instanceof SenderComSpec) {
-					Assert.isTrue(is_cs == null || !is_cs);
-					is_cs = false;
-				}
-				Assert.isTrue(is_r == null || !is_r);
-				is_r = false;
-			}
-		}
-		if (rcs != null) {
-			for (RPortComSpec rpcs : rcs) {
-				if (rpcs instanceof ClientComSpec) {
-					Assert.isTrue(is_cs == null || is_cs);
-					is_cs = true;
-				} else if (rpcs instanceof ReceiverComSpec) {
-					Assert.isTrue(is_cs == null || !is_cs);
-					is_cs = false;
-				}
-				Assert.isTrue(is_r == null || is_r);
-				is_r = true;
-			}
-		}
-		Assert.isTrue(is_cs != null);
-		Assert.isTrue(is_r != null);
-		ArElement ae = null;
-		if (is_cs) {
-			ae = new CSPort(pp.getShortName(), is_r);
-		} else {
-			ae = new SRPort(pp.getShortName(), is_r);
-		}
+//		Assert.isTrue(css != null || rcs != null);
+		
+//		if (css != null) {
+//			for (PPortComSpec ppcs : css) {
+//				if (ppcs instanceof ServerComSpec) {
+//					Assert.isTrue(is_cs == null || is_cs);
+//					is_cs = true;
+//				} else if (ppcs instanceof SenderComSpec) {
+//					Assert.isTrue(is_cs == null || !is_cs);
+//					is_cs = false;
+//				}
+//				Assert.isTrue(is_r == null || !is_r);
+//				is_r = false;
+//			}
+//		}
+//		if (rcs != null) {
+//			for (RPortComSpec rpcs : rcs) {
+//				if (rpcs instanceof ClientComSpec) {
+//					Assert.isTrue(is_cs == null || is_cs);
+//					is_cs = true;
+//				} else if (rpcs instanceof ReceiverComSpec) {
+//					Assert.isTrue(is_cs == null || !is_cs);
+//					is_cs = false;
+//				}
+//				Assert.isTrue(is_r == null || is_r);
+//				is_r = true;
+//			}
+//		}
+//		Assert.isTrue(is_cs != null || is_r != null);
 		return ae;
 	}
 	

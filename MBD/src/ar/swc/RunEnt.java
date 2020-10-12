@@ -1,5 +1,6 @@
 package ar.swc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ public class RunEnt extends ArElement {
 	Map<String, VarAcc> read_vas = new HashMap<String, VarAcc>();
 	Map<String, VarAcc> write_vas = new HashMap<String, VarAcc>();
 	
+	ArrayList<ServerCall> server_calls = new ArrayList<ServerCall>();
+	
 	public RunEnt(String name) {// , SwCompo sc
 		super(name);
 //		this.sc = sc;
@@ -27,6 +30,14 @@ public class RunEnt extends ArElement {
 	public void PutAllWriteVarAccesses(Map<String, VarAcc> wt_vas) {
 //		AddVarAccesses(wt_vas, write_vas);
 		write_vas.putAll(wt_vas);
+	}
+	
+	public void AddServerCall(ServerCall sc) {
+		server_calls.add(sc);
+	}
+	
+	public ArrayList<ServerCall> GetAllServerCalls() {
+		return server_calls;
 	}
 	
 //	private void AddVarAccesses(ArrayList<VarAcc> t_vas, Map<String, VarAcc> map_vas) {
@@ -61,15 +72,15 @@ public class RunEnt extends ArElement {
 		StringBuilder res = new StringBuilder("");
 		String full_path = GetGeneratedPath();
 		Assert.isTrue(full_path != null);
-		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\");");
-
+		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"runnable\");");
+		
 		Collection<VarAcc> rvs = read_vas.values();
 		Collection<VarAcc> wvs = write_vas.values();
 		
 		String ins = ToPorts(rvs);
 		String outs = ToPorts(wvs);
 		
-		res.append("AddActor(\"" + full_path + "\",\"" + "FunctionCall" +  "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"runnable\");");
+		res.append("AddActor(\"" + full_path + "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"FunctionCall\");");
 		
 		for (VarAcc rv : rvs) {
 			res.append(rv.ToScript());
@@ -77,6 +88,11 @@ public class RunEnt extends ArElement {
 		for (VarAcc wv : wvs) {
 			res.append(wv.ToScript());
 		}
+		
+		for (ServerCall server_call : server_calls) {
+			server_call.GetArCsOperation().ToScriptInEnv(false, full_path);
+		}
+		
 		return res.toString();
 	}
 	

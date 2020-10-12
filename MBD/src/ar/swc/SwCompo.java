@@ -103,13 +103,14 @@ public class SwCompo extends ArElement {
 		StringBuilder res = new StringBuilder("");
 		String full_path = GetGeneratedPath();
 		Assert.isTrue(full_path != null);
-		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\");");
+		String comment = swcs.size() > 0 ? "comp_swc" : "swc";
+		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"" + comment + "\");");
 		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "\"," + in_cnt.toString() + ");");
 		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + out_cnt.toString() + ");");
 		
-		for (CSPort p : cs_ports) {
-			res.append(p.ToScript());
-		}
+//		for (CSPort p : cs_ports) {
+//			res.append(p.ToScript());
+//		}
 		
 		for (SwcBehaviour swcb : swc_bs) {
 			res.append(swcb.ToScript());
