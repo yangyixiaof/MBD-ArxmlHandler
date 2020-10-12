@@ -30,8 +30,7 @@ public class OperationEvent extends ArElement {
 	
 	@Override
 	public String ToScript() {
-		// TODO Auto-generated method stub
-		return super.ToScript();
+		return aco.ToScriptInEnv(true, re.GetGeneratedPath());
 	}
 	
 }

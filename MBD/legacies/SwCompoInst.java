@@ -61,7 +61,7 @@ public class SwCompoInst implements ArProperty {
 	public String ToScript() {
 		return "addActor(\"" + parent.GetGeneratedPath() + "\",\"/" + name + "\",\"" + type.GetGeneratedPath() + "\");";
 	}
-
+	
 	@Override
 	public Object ArClone() {
 		Assert.isTrue(false);

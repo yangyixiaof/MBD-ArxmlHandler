@@ -72,7 +72,6 @@ public class RunEnt extends ArElement {
 		StringBuilder res = new StringBuilder("");
 		String full_path = GetGeneratedPath();
 		Assert.isTrue(full_path != null);
-		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"runnable\");");
 		
 		Collection<VarAcc> rvs = read_vas.values();
 		Collection<VarAcc> wvs = write_vas.values();
@@ -80,7 +79,12 @@ public class RunEnt extends ArElement {
 		String ins = ToPorts(rvs);
 		String outs = ToPorts(wvs);
 		
-		res.append("AddActor(\"" + full_path + "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"FunctionCall\");");
+		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"runnable\");");
+		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "\"," + ins + ");");
+		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + outs + ");");
+		
+		SwCompo swc = (SwCompo) GetParent().GetParent();
+		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + "FunctionCall" + "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"runnable\");");
 		
 		for (VarAcc rv : rvs) {
 			res.append(rv.ToScript());

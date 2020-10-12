@@ -94,6 +94,14 @@ public class SRPort extends ArElement {
 //		return (func + "(\"" + StringHelper.NonLastPartInPath(gen_path) + "\",\"/" + name + "\",\"" + ctype + "\");");
 //	}
 	
+	public String ToParameterDeclaration() {
+		String srport_type = "Unknown";
+		if (GetArSRInterfaceWithPartDataElements() != null) {
+			srport_type = GetArSRInterfaceWithPartDataElements().ToTypeString();
+		}
+		return ("[" + "\"" + GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "]");
+	}
+	
 	public String ToRelationScript() {
 		if (target != null) {
 //			String res = "addRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\",\"" + StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()) + "\");";

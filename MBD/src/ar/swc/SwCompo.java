@@ -55,6 +55,16 @@ public class SwCompo extends ArElement {
 		swc_bs.add(swc_b);
 	}
 	
+	public SRPort SearchForSRPortBasedOnPortName(String relative_port_name) {
+		for (SRPort port : ports) {
+			if (port.GetName().equals(relative_port_name)) {
+				return port;
+			}
+		}
+		Assert.isTrue(false, "null sr port!");
+		return null;
+	}
+	
 //	public ArrayList<SRPort> GetAllPorts() {
 //		return ports;
 //	}
@@ -76,11 +86,8 @@ public class SwCompo extends ArElement {
 		
 		in_cnt.append("[");
 		for (SRPort in : inputs) {
-			String srport_type = "Unknown";
-			if (in.GetArSRInterfaceWithPartDataElements() != null) {
-				srport_type = in.GetArSRInterfaceWithPartDataElements().ToTypeString();
-			}
-			in_cnt.append("[" + "\"" + in.GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "],");
+			in_cnt.append(in.ToParameterDeclaration());
+			in_cnt.append(",");
 		}
 		if (inputs.size() > 0) {
 			in_cnt.deleteCharAt(in_cnt.length()-1);
@@ -89,11 +96,8 @@ public class SwCompo extends ArElement {
 		
 		out_cnt.append("[");
 		for (SRPort out : outputs) {
-			String srport_type = "Unknown";
-			if (out.GetArSRInterfaceWithPartDataElements() != null) {
-				srport_type = out.GetArSRInterfaceWithPartDataElements().ToTypeString();
-			}
-			out_cnt.append("[" + "\"" + out.GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "],");
+			out_cnt.append(out.ToParameterDeclaration());
+			out_cnt.append(",");
 		}
 		if (outputs.size() > 0) {
 			out_cnt.deleteCharAt(out_cnt.length()-1);

@@ -38,9 +38,42 @@ public class VarAcc extends ArElement {
 	
 	@Override
 	public String ToScript() {
-		StringBuffer res = new StringBuffer();
 		RunEnt re = (RunEnt) GetParent();
 		SwCompo swc = (SwCompo) re.GetParent().GetParent();
+		StringBuffer res = new StringBuffer();
+		// Generate code for DeStruct/NewStruct. 
+		
+		StringBuffer swc_port_cnt = new StringBuffer();
+		StringBuffer runnable_port_cnt = new StringBuffer();
+		
+		SRPort port = swc.SearchForSRPortBasedOnPortName(relative_port_name);
+		swc_port_cnt.append("[");
+		swc_port_cnt.append(port.ToParameterDeclaration());
+		swc_port_cnt.append("]");
+		
+		runnable_port_cnt.append("[");
+		runnable_port_cnt.append(ToRunnablePartPorts());
+		runnable_port_cnt.append("]");
+
+		String dns = null;
+		StringBuffer in_buffer = null;
+		StringBuffer out_buffer = null;
+		if (is_read) {
+			dns = "DeStruct";
+			in_buffer = swc_port_cnt;
+			out_buffer = runnable_port_cnt;
+		} else {
+			dns = "NewStruct";
+			in_buffer = runnable_port_cnt;
+			out_buffer = swc_port_cnt;
+		}
+		
+		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + dns + "\",\"" + GetName() + "\",");
+		res.append(in_buffer.toString());
+		res.append(",");
+		res.append(out_buffer.toString());
+		res.append(",\"runnable\");");
+		// Generate code for relation. 
 		for (ArDataElement data_ele : data_eles) {
 			String SrcActorName = is_read ? swc.GetName() + "_head" : GetName();
 			String SrcOutportName = is_read ? relative_port_name : data_ele.GetName();
