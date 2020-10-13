@@ -61,7 +61,7 @@ public class SwCompo extends ArElement {
 				return port;
 			}
 		}
-		Assert.isTrue(false, "null sr port!");
+		Assert.isTrue(false, "null sr port! the name is: " + relative_port_name);
 		return null;
 	}
 	
@@ -109,8 +109,8 @@ public class SwCompo extends ArElement {
 		Assert.isTrue(full_path != null);
 		String comment = swcs.size() > 0 ? "comp_swc" : "swc";
 		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"" + comment + "\");");
-		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "\"," + in_cnt.toString() + ");");
-		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + out_cnt.toString() + ");");
+		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "_head" + "\"," + in_cnt.toString() + ",\"" + comment + "\");");
+		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "_tail" + "\"," + out_cnt.toString() + ",\"" + comment + "\");");
 		
 //		for (CSPort p : cs_ports) {
 //			res.append(p.ToScript());

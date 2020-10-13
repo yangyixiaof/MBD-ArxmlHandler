@@ -1,9 +1,9 @@
-package ar.swc;
+package ar.swc.event;
 
-import ar.ArElement;
 import ar.intf.cs.ArCsOperation;
+import ar.swc.RunEnt;
 
-public class OperationEvent extends ArElement {
+public class OperationEvent extends ArEvent {
 	
 	RunEnt re = null;
 	ArCsOperation aco = null;
@@ -26,6 +26,14 @@ public class OperationEvent extends ArElement {
 	
 	public ArCsOperation GetArCsOperation() {
 		return aco;
+	}
+	
+	@Override
+	public Object ArClone() {
+		OperationEvent oe = new OperationEvent(name);
+		oe.SetRunEnt(re);
+		oe.SetArCsOperation(aco);
+		return oe;
 	}
 	
 	@Override

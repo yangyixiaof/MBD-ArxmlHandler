@@ -80,8 +80,8 @@ public class RunEnt extends ArElement {
 		String outs = ToPorts(wvs);
 		
 		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"runnable\");");
-		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "\"," + ins + ");");
-		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + outs + ");");
+		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "\"," + ins + ",\"runnable\");");
+		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + outs + ",\"runnable\");");
 		
 		SwCompo swc = (SwCompo) GetParent().GetParent();
 		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + "FunctionCall" + "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"runnable\");");

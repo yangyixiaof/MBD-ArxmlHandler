@@ -23,13 +23,13 @@ import ar.intf.cs.ArCsInterfaceWithOperationProperty;
 import ar.intf.cs.ArCsOperation;
 import ar.intf.cs.ArCsOperationProperty;
 import ar.swc.CSPort;
-import ar.swc.OperationEvent;
 import ar.swc.RunEnt;
 import ar.swc.SRPort;
 import ar.swc.ServerCall;
 import ar.swc.SwCompo;
 import ar.swc.SwcBehaviour;
 import ar.swc.VarAcc;
+import ar.swc.event.OperationEvent;
 import ar.type.ArBaseDataType;
 import ar.type.ArDataType;
 import ar.util.ArCloneUtil;
@@ -233,13 +233,15 @@ public class InfoManager {
 				return false;
 			} else if (root instanceof RunnableEntity) {
 				RunnableEntity rei = (RunnableEntity) root;
-				ae = new RunEnt(rei.gGetShortName());
+				String re_name = rei.gGetShortName();
+				ae = new RunEnt(re_name);
 				SwcInternalBehavior sri = (SwcInternalBehavior) root.eContainer();
 				SwcBehaviour swc_b = (SwcBehaviour) eobject_map.get(sri);
 				swc_b.AddRunnableEntity((RunEnt) ae);
 			} else if (root instanceof OperationInvokedEvent) {
 				OperationInvokedEvent oie = (OperationInvokedEvent) root;
 				ae = new OperationEvent(oie.getShortName());
+				
 //				RunnableEntity re_ref = oie.getStartOnEvent();
 //				System.out.println("re_ref_is_proxy:" + re_ref.eIsProxy() + "#cs_op.toString():" + re_ref.toString());
 //				POperationInAtomicSwcInstanceRef oie_op = oie.getOperation();
@@ -875,7 +877,7 @@ public class InfoManager {
 							String accessed_var_prop = StringHelper.GetProxyValidPath(tds);
 							String port_full_name = StringHelper.GetProxyValidPath(pps);
 //							Assert.isTrue(accessed_var_prop.startsWith(port_full_name), "accessed_var_prop:" + accessed_var_prop + "#port_full_name:" + port_full_name);
-							String port_prop = StringHelper.LastPartInPath(accessed_var_prop);
+							String port_prop = StringHelper.LastPartInPath(port_full_name);
 							
 							String swc_path = StringHelper.NonLastPartInPath(port_full_name);
 							SwCompo c_swc = (SwCompo) path_map.get(swc_path);
