@@ -99,7 +99,7 @@ public class SRPort extends ArElement {
 		if (GetArSRInterfaceWithPartDataElements() != null) {
 			srport_type = GetArSRInterfaceWithPartDataElements().ToTypeString();
 		}
-		return ("[" + "\"" + GetName() + "\"" + "," + "\"" + srport_type + "\"," + "\"0\"" + "]");
+		return ("[" + "\"" + GetName() + "\"" + " " + "\"" + srport_type + "\" " + "\"0\"" + "]");
 	}
 	
 	public String ToRelationScript() {

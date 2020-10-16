@@ -29,6 +29,7 @@ public class ArCsOperation extends ArElement {
 	}
 	
 	public String ToScriptInEnv(boolean is_read, String model_page_path) {
+//		System.err.println("CsOperation is_read:" + is_read);
 		ArrayList<ArCsArgument> inputs = new ArrayList<ArCsArgument>();
 		ArrayList<ArCsArgument> outputs = new ArrayList<ArCsArgument>();
 		for (ArCsArgument aca : args) {
@@ -45,10 +46,10 @@ public class ArCsOperation extends ArElement {
 		for (ArCsArgument input : inputs) {
 			in_cnt_builder.append("[");
 			in_cnt_builder.append(input.GetName());
-			in_cnt_builder.append(",");
+			in_cnt_builder.append(" ");
 			in_cnt_builder.append(input.GetDataType().ToScript());
-			in_cnt_builder.append(",0");
-			in_cnt_builder.append("],");
+			in_cnt_builder.append(" 0");
+			in_cnt_builder.append("]#");
 		}
 		if (inputs.size() > 0) {
 			in_cnt_builder.deleteCharAt(in_cnt_builder.length() - 1);
@@ -60,10 +61,10 @@ public class ArCsOperation extends ArElement {
 		for (ArCsArgument output : outputs) {
 			out_cnt_builder.append("[");
 			out_cnt_builder.append(output.GetName());
-			out_cnt_builder.append(",");
+			out_cnt_builder.append(" ");
 			out_cnt_builder.append(output.GetDataType().ToScript());
-			out_cnt_builder.append(",0");
-			out_cnt_builder.append("],");
+			out_cnt_builder.append(" 0");
+			out_cnt_builder.append("]#");
 		}
 		if (outputs.size() > 0) {
 			out_cnt_builder.deleteCharAt(out_cnt_builder.length() - 1);
@@ -81,8 +82,8 @@ public class ArCsOperation extends ArElement {
 			cnt_builder.append(",\"client\");");
 		} else {
 //			String op_path = cs_op.GetGeneratedPath();
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgIn" + "\",\"" + GetName() + "_head" + "\"," + in_cnt_builder.toString() + ",\"server\");");
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgOut" + "\",\"" + GetName() + "_tail" + "\"," + out_cnt_builder.toString() + ",\"server\");");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "_head" + "\"," + in_cnt_builder.toString() + ",\"server\");");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_tail" + "\"," + out_cnt_builder.toString() + ",\"server\");");
 		}
 		return cnt_builder.toString();
 	}

@@ -241,7 +241,9 @@ public class InfoManager {
 			} else if (root instanceof OperationInvokedEvent) {
 				OperationInvokedEvent oie = (OperationInvokedEvent) root;
 				ae = new OperationEvent(oie.getShortName());
-				
+				SwcInternalBehavior sri = (SwcInternalBehavior) root.eContainer();
+				SwcBehaviour swc_b = (SwcBehaviour) eobject_map.get(sri);
+				swc_b.AddArEvent((OperationEvent) ae);
 //				RunnableEntity re_ref = oie.getStartOnEvent();
 //				System.out.println("re_ref_is_proxy:" + re_ref.eIsProxy() + "#cs_op.toString():" + re_ref.toString());
 //				POperationInAtomicSwcInstanceRef oie_op = oie.getOperation();

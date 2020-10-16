@@ -33,6 +33,7 @@ public class RunEnt extends ArElement {
 	}
 	
 	public void AddServerCall(ServerCall sc) {
+//		System.err.println("ServerCall:" + sc.GetName());
 		server_calls.add(sc);
 	}
 	
@@ -94,7 +95,7 @@ public class RunEnt extends ArElement {
 		}
 		
 		for (ServerCall server_call : server_calls) {
-			server_call.GetArCsOperation().ToScriptInEnv(false, full_path);
+			res.append(server_call.GetArCsOperation().ToScriptInEnv(true, full_path));
 		}
 		
 		return res.toString();
@@ -106,10 +107,10 @@ public class RunEnt extends ArElement {
 		for (VarAcc rv : vs) {
 			String rpps = rv.ToRunnablePartPorts();
 			if (!rpps.isEmpty()) {
-				in_pp.append(rpps + ",");
+				in_pp.append(rpps + "#");
 			}
 		}
-		if (in_pp.charAt(in_pp.length()-1) == ',') {
+		if (in_pp.charAt(in_pp.length()-1) == '#') {
 			in_pp.deleteCharAt(in_pp.length()-1);
 		}
 		in_pp.append("]");

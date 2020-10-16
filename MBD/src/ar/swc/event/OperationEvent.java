@@ -38,7 +38,7 @@ public class OperationEvent extends ArEvent {
 	
 	@Override
 	public String ToScript() {
-		return aco.ToScriptInEnv(true, re.GetGeneratedPath());
+		return aco.ToScriptInEnv(false, re.GetGeneratedPath());
 	}
 	
 }

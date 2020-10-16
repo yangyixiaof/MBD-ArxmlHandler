@@ -87,9 +87,9 @@ public class VarAcc extends ArElement {
 	public String ToRunnablePartPorts() {
 		StringBuffer sb = new StringBuffer();
 		for (ArDataElement data_ele : data_eles) {
-			sb.append("[\"" + data_ele.GetName() + "\",\"" + data_ele.GetDataType().ToScript() + "\"," + "\"0\"],");
+			sb.append("[\"" + data_ele.GetName() + "\" \"" + data_ele.GetDataType().ToScript() + "\" " + "\"0\"]#");
 		}
-		if (sb.charAt(sb.length()-1) == ',') {
+		if (data_eles.size() > 0) {
 			sb.deleteCharAt(sb.length()-1);
 		}
 		return sb.toString();

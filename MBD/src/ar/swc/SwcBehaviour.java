@@ -19,6 +19,7 @@ public class SwcBehaviour extends ArElement {
 	}
 	
 	public void AddArEvent(ArEvent evt) {
+//		System.err.println("Added! ArEvent:" + evt.GetName());
 		events.add(evt);
 	}
 	
@@ -46,7 +47,7 @@ public class SwcBehaviour extends ArElement {
 			res.append(r.ToScript());
 		}
 		for (ArEvent e : events) {
-//			System.err.println("RunEnt:" + r.GetGeneratedPath());
+//			System.err.println("ArEvent:" + e.GetGeneratedPath());
 			res.append(e.ToScript());
 		}
 		return res.toString();
