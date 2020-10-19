@@ -378,6 +378,13 @@ public class InfoManager {
 			RunnableEntity rei = (RunnableEntity) root;
 			RunEnt ar_ele = (RunEnt) eobject_map.get(rei);
 			
+			EList<VariableAccess> drp_reads = rei.getDataReceivePointByArguments();
+			Map<String, VarAcc> drp_r_vas = HandleVariableAccess(drp_reads, true);
+			ar_ele.PutAllReadVarAccesses(drp_r_vas);
+			for (VarAcc r_va : drp_r_vas.values()) {
+				ar_ele.AddChildElement(r_va);
+			}
+			
 			EList<VariableAccess> reads = rei.getDataReadAccess();
 			Map<String, VarAcc> r_vas = HandleVariableAccess(reads, true);
 			ar_ele.PutAllReadVarAccesses(r_vas);

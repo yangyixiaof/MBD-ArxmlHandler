@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
+import util.TypeHelper;
 
 public class ArDataType extends ArElement {
 	
@@ -24,7 +25,9 @@ public class ArDataType extends ArElement {
 	@Override
 		public String ToScript() {
 			Assert.isTrue(data_types.size() == 1);
-			return data_types.get(0).GetName();
+			String d_type = data_types.get(0).GetName();
+			String c_type = TypeHelper.TranslateArxmlTypeToCType(d_type);
+			return c_type;
 		}
 	
 //	public void AddDataElement(String name, Object type) {
