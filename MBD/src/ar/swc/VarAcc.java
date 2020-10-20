@@ -75,9 +75,9 @@ public class VarAcc extends ArElement {
 		res.append(",\"runnable\");");
 		// Generate code for relation. 
 		for (ArDataElement data_ele : data_eles) {
-			String SrcActorName = is_read ? swc.GetName() + "_head" : GetName();
+			String SrcActorName = is_read ? swc.GetName() + "" : GetName();
 			String SrcOutportName = is_read ? relative_port_name : data_ele.GetName();
-			String DstActorName = is_read ? GetName() : swc.GetName() + "_tail";
+			String DstActorName = is_read ? GetName() : swc.GetName() + "_ret";
 			String DstInportName = is_read ? data_ele.GetName() : relative_port_name;
 			res.append("AddRelation(\"" + swc.GetGeneratedPath() + "\",\"" + SrcActorName + "\",\"" + SrcOutportName + "\",\"" + DstActorName + "\",\"" + DstInportName + "\");");
 		}

@@ -35,6 +35,18 @@ public class StringHelper {
 //        System.out.println("Total number of characters in a string: " + count);
         return count;
 	}
+	public static String InsertFunctionCallNameToFirstParameterInList(String function_call_name, String param_list) {
+		param_list = param_list.trim();
+		String to_ins = "[\"" + function_call_name + "\" \"string\" \"0\"]";
+		String sp = "";
+		if (param_list.length() > 2) {
+			sp = "#";
+		}
+		to_ins += sp;
+		StringBuilder res = new StringBuilder();
+		StringBuilder r_res = res.insert(1, to_ins);
+		return r_res.toString();
+	}
 	
 	public static void main(String[] args) {
 		System.out.println(StringHelper.Trim("a_", "_"));

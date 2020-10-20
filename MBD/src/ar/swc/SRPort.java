@@ -111,7 +111,7 @@ public class SRPort extends ArElement {
 			String tgt_port = null;
 			String relative_src = StringHelper.TrimPrefix(GetGeneratedPath(), relation_base.GetGeneratedPath()+"/");
 			if (GetParent() == relation_base) {
-				src_actor = relation_base.GetName() + "_head";
+				src_actor = relation_base.GetName() + "";
 				src_port = relative_src;
 			} else {
 				Assert.isTrue(StringHelper.CountCharacterInString(relative_src, '/') == 1, "relative_src:" + relative_src);
@@ -124,7 +124,7 @@ public class SRPort extends ArElement {
 			
 			String relative_tgt = StringHelper.TrimPrefix(target.GetGeneratedPath(), relation_base.GetGeneratedPath()+"/");
 			if (target.GetParent() == relation_base) {
-				tgt_actor = relation_base.GetName() + "_tail";
+				tgt_actor = relation_base.GetName() + "_ret";
 				tgt_port = relative_tgt;
 			} else {
 				Assert.isTrue(StringHelper.CountCharacterInString(relative_tgt, '/') == 1, "relative_src:" + relative_tgt);

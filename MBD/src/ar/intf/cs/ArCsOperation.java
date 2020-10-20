@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
+import util.StringHelper;
 
 public class ArCsOperation extends ArElement {
 	
@@ -75,15 +76,16 @@ public class ArCsOperation extends ArElement {
 
 		if (is_read) {
 			String call = "FunctionCallClient";
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + call + "\",\"" + GetName() + "\",");
-			cnt_builder.append(in_cnt_builder.toString());
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + call + "\",\"" + "call_client_" + GetName() + "\",");
+			String r_ins = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), in_cnt_builder.toString());
+			cnt_builder.append(r_ins);
 			cnt_builder.append(",");
 			cnt_builder.append(out_cnt_builder.toString());
 			cnt_builder.append(",\"client\");");
 		} else {
 //			String op_path = cs_op.GetGeneratedPath();
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "_head" + "\"," + in_cnt_builder.toString() + ",\"server\");");
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_tail" + "\"," + out_cnt_builder.toString() + ",\"server\");");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "" + "\"," + in_cnt_builder.toString() + ",\"server\");");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_ret" + "\"," + out_cnt_builder.toString() + ",\"server\");");
 		}
 		return cnt_builder.toString();
 	}

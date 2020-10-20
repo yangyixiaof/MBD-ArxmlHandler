@@ -9,6 +9,7 @@ import java.util.Set;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
+import util.StringHelper;
 
 public class RunEnt extends ArElement {
 	
@@ -85,7 +86,8 @@ public class RunEnt extends ArElement {
 		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + outs + ",\"runnable\");");
 		
 		SwCompo swc = (SwCompo) GetParent().GetParent();
-		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + "FunctionCall" + "\",\"" + GetName() + "\"," + ins + "," + outs + ",\"runnable\");");
+		String r_ins = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), ins);
+		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + "FunctionCall" + "\",\"" + "call_" + GetName() + "\"," + r_ins + "," + outs + ",\"runnable\");");
 		
 		for (VarAcc rv : rvs) {
 			res.append(rv.ToScript());

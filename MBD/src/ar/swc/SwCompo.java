@@ -109,8 +109,8 @@ public class SwCompo extends ArElement {
 		Assert.isTrue(full_path != null);
 		String comment = swcs.size() > 0 ? "comp_swc" : "swc";
 		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"" + comment + "\");");
-		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "_head" + "\"," + in_cnt.toString() + ",\"" + comment + "\");");
-		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "_tail" + "\"," + out_cnt.toString() + ",\"" + comment + "\");");
+		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "" + "\"," + in_cnt.toString() + ",\"" + comment + "\");");
+		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "_ret" + "\"," + out_cnt.toString() + ",\"" + comment + "\");");
 		
 //		for (CSPort p : cs_ports) {
 //			res.append(p.ToScript());
