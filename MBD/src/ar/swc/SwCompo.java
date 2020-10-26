@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.eclipse.core.runtime.Assert;
 
 import ar.ArElement;
+import util.StringHelper;
 
 public class SwCompo extends ArElement {
 	
@@ -70,6 +71,44 @@ public class SwCompo extends ArElement {
 //	}
 	
 	public String ToScript() {
+		
+		InOut in_out = ToInputOutput();
+		
+		StringBuilder res = new StringBuilder("");
+		String full_path = GetGeneratedPath();
+		Assert.isTrue(full_path != null);
+		String comment = swcs.size() > 0 ? "comp_swc" : "swc";
+		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"" + comment + "\");");
+		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "" + "\"," + in_out.in + ",\"" + comment + "\");");
+		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "_ret" + "\"," + in_out.out + ",\"" + comment + "\");");
+		
+//		for (CSPort p : cs_ports) {
+//			res.append(p.ToScript());
+//		}
+		
+		for (SwcBehaviour swcb : swc_bs) {
+			res.append(swcb.ToScript());
+		}
+		
+//		for (SwCompo swc : swcs) {
+//			res.append(swc.ToScript());
+//		}
+		
+		for (SwCompo swc : swcs) {
+			res.append(swc.ToActorScript(full_path));
+		}
+		
+		return res.toString();
+	}
+	
+	public String ToActorScript(String par_path) {
+		InOut in_out = ToInputOutput();
+		String r_ins = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), in_out.in);
+		String res = "AddActor(\"" + par_path + "\",\"" + "FunctionCall" + "\",\"" + GetName() + "\"," + r_ins + "," + in_out.out + ",\"runnable\");";
+		return res;
+	}
+	
+	private InOut ToInputOutput() {
 		ArrayList<SRPort> inputs = new ArrayList<SRPort>();
 		ArrayList<SRPort> outputs = new ArrayList<SRPort>();
 		
@@ -104,27 +143,7 @@ public class SwCompo extends ArElement {
 		}
 		out_cnt.append("]");
 		
-		StringBuilder res = new StringBuilder("");
-		String full_path = GetGeneratedPath();
-		Assert.isTrue(full_path != null);
-		String comment = swcs.size() > 0 ? "comp_swc" : "swc";
-		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"" + comment + "\");");
-		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "" + "\"," + in_cnt.toString() + ",\"" + comment + "\");");
-		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "_ret" + "\"," + out_cnt.toString() + ",\"" + comment + "\");");
-		
-//		for (CSPort p : cs_ports) {
-//			res.append(p.ToScript());
-//		}
-		
-		for (SwcBehaviour swcb : swc_bs) {
-			res.append(swcb.ToScript());
-		}
-		
-		for (SwCompo swc : swcs) {
-			res.append(swc.ToScript());
-		}
-		
-		return res.toString();
+		return new InOut(in_cnt.toString(), out_cnt.toString());
 	}
 
 	@Override
@@ -203,3 +222,17 @@ public class SwCompo extends ArElement {
 //	}
 	
 }
+
+class InOut {
+	
+	public String in;
+	public String out;
+	
+	public InOut(String in, String out) {
+		this.in = in;
+		this.out = out;
+	}
+	
+}
+
+

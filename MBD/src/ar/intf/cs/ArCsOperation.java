@@ -76,7 +76,7 @@ public class ArCsOperation extends ArElement {
 
 		if (is_read) {
 			String call = "FunctionCallClient";
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + call + "\",\"" + "call_client_" + GetName() + "\",");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + call + "\",\"" + GetName() + "\",");
 			String r_ins = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), in_cnt_builder.toString());
 			cnt_builder.append(r_ins);
 			cnt_builder.append(",");

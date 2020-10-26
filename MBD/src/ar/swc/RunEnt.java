@@ -87,7 +87,7 @@ public class RunEnt extends ArElement {
 		
 		SwCompo swc = (SwCompo) GetParent().GetParent();
 		String r_ins = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), ins);
-		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + "FunctionCall" + "\",\"" + "call_" + GetName() + "\"," + r_ins + "," + outs + ",\"runnable\");");
+		res.append("AddActor(\"" + swc.GetGeneratedPath() + "\",\"" + "FunctionCall" + "\",\"" + GetName() + "\"," + r_ins + "," + outs + ",\"runnable\");");
 		
 		for (VarAcc rv : rvs) {
 			res.append(rv.ToScript());
