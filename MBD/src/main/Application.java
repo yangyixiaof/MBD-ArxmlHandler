@@ -33,6 +33,8 @@ public class Application implements IApplication {
 			String s = im.ToScript();
 			s = s.replace(";", "\n");
 //			System.out.println("Final Result:" + s);
+			System.out.println("");
+			System.out.println("==== Result ====");
 			System.out.println(s);
 		}
 		

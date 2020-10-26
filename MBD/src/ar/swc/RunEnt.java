@@ -83,7 +83,7 @@ public class RunEnt extends ArElement {
 		
 		res.append("AddModelPage(\"" + full_path + "\",\"ProgramModelPage\",\"runnable\");");
 		res.append("AddFunction(\"" + full_path + "\",\"" + GetName() + "\"," + ins + ",\"runnable\");");
-		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "\"," + outs + ",\"runnable\");");
+		res.append("AddReturnValue(\"" + full_path + "\",\"" + GetName() + "_ret" + "\"," + outs + ",\"runnable\");");
 		
 		SwCompo swc = (SwCompo) GetParent().GetParent();
 		String r_ins = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), ins);

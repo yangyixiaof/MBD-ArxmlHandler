@@ -84,8 +84,8 @@ public class ArCsOperation extends ArElement {
 			cnt_builder.append(",\"client\");");
 		} else {
 //			String op_path = cs_op.GetGeneratedPath();
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "" + "\"," + in_cnt_builder.toString() + ",\"server\");");
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_ret" + "\"," + out_cnt_builder.toString() + ",\"server\");");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "" + "\",[]," + in_cnt_builder.toString() + ",\"server\");");
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_ret" + "\"," + out_cnt_builder.toString() + ",[],\"server\");");
 		}
 		return cnt_builder.toString();
 	}

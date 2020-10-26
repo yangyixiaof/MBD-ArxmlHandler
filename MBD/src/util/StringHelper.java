@@ -36,6 +36,7 @@ public class StringHelper {
         return count;
 	}
 	public static String InsertFunctionCallNameToFirstParameterInList(String function_call_name, String param_list) {
+		Assert.isTrue(param_list.length() >= 2, "Param length must be >= 2, wrong param:" + param_list);
 		param_list = param_list.trim();
 		String to_ins = "[\"" + function_call_name + "\" \"string\" \"0\"]";
 		String sp = "";
@@ -43,8 +44,9 @@ public class StringHelper {
 			sp = "#";
 		}
 		to_ins += sp;
-		StringBuilder res = new StringBuilder();
+		StringBuilder res = new StringBuilder(param_list);
 		StringBuilder r_res = res.insert(1, to_ins);
+//		System.err.println("r_res:" + r_res);
 		return r_res.toString();
 	}
 	

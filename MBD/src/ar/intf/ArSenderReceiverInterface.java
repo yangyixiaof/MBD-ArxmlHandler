@@ -72,7 +72,7 @@ public class ArSenderReceiverInterface extends ArElement {
 			Assert.isTrue(ele != null);
 			Assert.isTrue(ele.GetDataType() != null, "strange interface name:" + name);
 			code.append("[");
-			code.append("\"" + ele.GetName() + "\"" + "," + "\"" + ele.GetDataType().ToScript() + "\"" + "," + "\"" + "0" + "\"");
+			code.append("\"" + ele.GetName() + "\"" + " " + "\"" + ele.GetDataType().ToScript() + "\"" + " " + "\"" + "0" + "\"");
 			code.append("],");
 		}
 		if (code.charAt(code.length()-1) == ',') {
