@@ -1,6 +1,7 @@
 package ar.intf;
 
 import ar.ArElement;
+import ar.swc.VarAcc;
 import ar.type.ArDataType;
 
 public class ArDataElement extends ArElement {
@@ -22,6 +23,15 @@ public class ArDataElement extends ArElement {
 	@Override
 	public String ToScript() {
 		return type.ToScript();
+	}
+	
+	@Override
+	public String GetName() {
+		return super.GetName();
+	}
+	
+	public String GetPortName(VarAcc va) {
+		return va.GetRelativePortName() + "_" + super.GetName();
 	}
 	
 }

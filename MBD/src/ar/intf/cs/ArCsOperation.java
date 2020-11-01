@@ -45,11 +45,11 @@ public class ArCsOperation extends ArElement {
 		StringBuilder in_cnt_builder = new StringBuilder("");
 		in_cnt_builder.append("[");
 		for (ArCsArgument input : inputs) {
-			in_cnt_builder.append("[");
+			in_cnt_builder.append("[\"");
 			in_cnt_builder.append(input.GetName());
-			in_cnt_builder.append(" ");
+			in_cnt_builder.append("\" \"");
 			in_cnt_builder.append(input.GetDataType().ToScript());
-			in_cnt_builder.append(" 0");
+			in_cnt_builder.append("\" \"0\"");
 			in_cnt_builder.append("]#");
 		}
 		if (inputs.size() > 0) {
@@ -60,11 +60,11 @@ public class ArCsOperation extends ArElement {
 		StringBuilder out_cnt_builder = new StringBuilder("");
 		out_cnt_builder.append("[");
 		for (ArCsArgument output : outputs) {
-			out_cnt_builder.append("[");
+			out_cnt_builder.append("[\"");
 			out_cnt_builder.append(output.GetName());
-			out_cnt_builder.append(" ");
+			out_cnt_builder.append("\" \"");
 			out_cnt_builder.append(output.GetDataType().ToScript());
-			out_cnt_builder.append(" 0");
+			out_cnt_builder.append("\" \"0\"");
 			out_cnt_builder.append("]#");
 		}
 		if (outputs.size() > 0) {
@@ -84,8 +84,11 @@ public class ArCsOperation extends ArElement {
 			cnt_builder.append(",\"client\");");
 		} else {
 //			String op_path = cs_op.GetGeneratedPath();
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "" + "\",[]," + in_cnt_builder.toString() + ",\"server\");");
-			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_ret" + "\"," + out_cnt_builder.toString() + ",[],\"server\");");
+			String ins = in_cnt_builder.toString();
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentIn" + "\",\"" + GetName() + "" + "\",[[\"" + GetName() + "\" \"string\" \"0\"]]," + ins + ",\"server\");");
+			String outs = out_cnt_builder.toString();
+			String r_outs = StringHelper.InsertFunctionCallNameToFirstParameterInList(GetName(), outs);
+			cnt_builder.append("AddActor(\"" + model_page_path + "\",\"" + "ArgumentOut" + "\",\"" + GetName() + "_ret" + "\"," + r_outs + ",[],\"server\");");
 		}
 		return cnt_builder.toString();
 	}

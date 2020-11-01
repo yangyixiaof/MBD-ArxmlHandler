@@ -75,11 +75,26 @@ public class VarAcc extends ArElement {
 		res.append(",\"runnable\");");
 		// Generate code for relation. 
 		for (ArDataElement data_ele : data_eles) {
-			String SrcActorName = is_read ? swc.GetName() + "" : GetName();
-			String SrcOutportName = is_read ? relative_port_name : data_ele.GetName();
-			String DstActorName = is_read ? GetName() : swc.GetName() + "_ret";
-			String DstInportName = is_read ? data_ele.GetName() : relative_port_name;
-			res.append("AddRelation(\"" + swc.GetGeneratedPath() + "\",\"" + SrcActorName + "\",\"" + SrcOutportName + "\",\"" + DstActorName + "\",\"" + DstInportName + "\");");
+			/**
+			 * relation from swc to this actor
+			 */
+			{
+				String SrcActorName = is_read ? swc.GetName() + "" : GetName();
+				String SrcOutportName = is_read ? relative_port_name : data_ele.GetPortName(this);
+				String DstActorName = is_read ? GetName() : swc.GetName() + "_ret";
+				String DstInportName = is_read ? data_ele.GetPortName(this) : relative_port_name;
+				res.append("AddRelation(\"" + swc.GetGeneratedPath() + "\",\"" + SrcActorName + "\",\"" + SrcOutportName + "\",\"" + DstActorName + "\",\"" + DstInportName + "\");");
+			}
+			/**
+			 * relation from this actor to runnable
+			 */
+			{
+				String SrcActorName = is_read ? GetName() : re.GetName() + "";
+				String SrcOutportName = is_read ? data_ele.GetPortName(this) : data_ele.GetPortName(this);
+				String DstActorName = is_read ? re.GetName() + "" : GetName();
+				String DstInportName = is_read ? data_ele.GetPortName(this) : data_ele.GetPortName(this);
+				res.append("AddRelation(\"" + swc.GetGeneratedPath() + "\",\"" + SrcActorName + "\",\"" + SrcOutportName + "\",\"" + DstActorName + "\",\"" + DstInportName + "\");");
+			}
 		}
 		return res.toString();
 	}
@@ -87,7 +102,7 @@ public class VarAcc extends ArElement {
 	public String ToRunnablePartPorts() {
 		StringBuffer sb = new StringBuffer();
 		for (ArDataElement data_ele : data_eles) {
-			sb.append("[\"" + data_ele.GetName() + "\" \"" + data_ele.GetDataType().ToScript() + "\" " + "\"0\"]#");
+			sb.append("[\"" + data_ele.GetPortName(this) + "\" \"" + data_ele.GetDataType().ToScript() + "\" " + "\"0\"]#");
 		}
 		if (data_eles.size() > 0) {
 			sb.deleteCharAt(sb.length()-1);

@@ -126,7 +126,7 @@ public class SwCompo extends ArElement {
 		in_cnt.append("[");
 		for (SRPort in : inputs) {
 			in_cnt.append(in.ToParameterDeclaration());
-			in_cnt.append(",");
+			in_cnt.append("#");
 		}
 		if (inputs.size() > 0) {
 			in_cnt.deleteCharAt(in_cnt.length()-1);
@@ -136,7 +136,7 @@ public class SwCompo extends ArElement {
 		out_cnt.append("[");
 		for (SRPort out : outputs) {
 			out_cnt.append(out.ToParameterDeclaration());
-			out_cnt.append(",");
+			out_cnt.append("#");
 		}
 		if (outputs.size() > 0) {
 			out_cnt.deleteCharAt(out_cnt.length()-1);

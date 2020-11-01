@@ -135,7 +135,7 @@ public class SRPort extends ArElement {
 				tgt_port = StringHelper.LastPartInPath(relative_tgt);
 			}
 			
-			String res = "AddRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + src_actor + "\",\"" + src_port + "\",\"" + tgt_actor + "\",\"" + tgt_port + "\")";
+			String res = "AddRelation(\"" + relation_base.GetGeneratedPath() + "\",\"" + src_actor + "\",\"" + src_port + "\",\"" + tgt_actor + "\",\"" + tgt_port + "\");";
 			return res;
 		}
 		return "";

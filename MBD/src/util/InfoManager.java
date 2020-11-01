@@ -907,6 +907,7 @@ public class InfoManager {
 								res.put(va_name, v_acc);
 							}
 							v_acc.AddArDataElement(vp);
+//							v_acc.AddChildElement(vp);
 //							pp.SetVarAcc(v_acc);
 //							res.add(v_acc);
 							
