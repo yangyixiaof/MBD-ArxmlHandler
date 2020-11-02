@@ -80,9 +80,9 @@ public class VarAcc extends ArElement {
 			 */
 			{
 				String SrcActorName = is_read ? swc.GetName() + "" : GetName();
-				String SrcOutportName = is_read ? relative_port_name : data_ele.GetPortName(this);
+				String SrcOutportName = is_read ? relative_port_name : relative_port_name;// data_ele.GetPortName(this)
 				String DstActorName = is_read ? GetName() : swc.GetName() + "_ret";
-				String DstInportName = is_read ? data_ele.GetPortName(this) : relative_port_name;
+				String DstInportName = is_read ? relative_port_name : relative_port_name;// data_ele.GetPortName(this)
 				res.append("AddRelation(\"" + swc.GetGeneratedPath() + "\",\"" + SrcActorName + "\",\"" + SrcOutportName + "\",\"" + DstActorName + "\",\"" + DstInportName + "\");");
 			}
 			/**
